@@ -84,24 +84,34 @@ export class AudioManager {
         if (!this.initialized || this.isMuted) return;
 
         const t = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        
+        // 1. Body (The hollow thud of plastic)
+        const osc1 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(400, t);
+        osc1.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+        gain1.gain.setValueAtTime(0, t);
+        gain1.gain.linearRampToValueAtTime(0.5, t + 0.005); // Attack
+        gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.15); // Decay
+        osc1.connect(gain1);
+        gain1.connect(this.masterGain);
+        osc1.start(t);
+        osc1.stop(t + 0.2);
 
-        // Pluck sound (sine wave dropping fast in pitch)
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, t);
-        osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
-
-        // Envelope
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-
-        osc.start(t);
-        osc.stop(t + 0.2);
+        // 2. Click (The hard surface contact)
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(2500, t);
+        osc2.frequency.exponentialRampToValueAtTime(1000, t + 0.05);
+        gain2.gain.setValueAtTime(0, t);
+        gain2.gain.linearRampToValueAtTime(0.3, t + 0.005);
+        gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        osc2.connect(gain2);
+        gain2.connect(this.masterGain);
+        osc2.start(t);
+        osc2.stop(t + 0.1);
     }
 
     playDrumRoll() {
@@ -201,7 +211,8 @@ export class AudioManager {
 
         utterance.rate = 1; 
         utterance.pitch = 1;
-        utterance.volume = this.volume;
+        // Amplify vocals 1.5x relative to effects (clamped at 1.0)
+        utterance.volume = Math.min(1, this.volume * 2);
 
         this.synth.speak(utterance);
     }

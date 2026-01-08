@@ -489,6 +489,12 @@ class App {
         // Reset player game data (keeps players but clears hits/wins)
         this.players.resetGame();
         
+        // Reset Drum (Visuals)
+        this.drum.setBallCount(90); // Full drum
+        document.getElementById('current-ball').textContent = '--';
+        document.getElementById('current-ball').classList.remove('hidden');
+        document.getElementById('history-track').innerHTML = '';
+
         // Clear game storage
         this.storage.clearGame();
         
@@ -580,6 +586,11 @@ class App {
                 this.engine.currentNumber = this.engine.drawnNumbers.at(-1);
             }
             
+            // SYNC DRUM STATE
+            // Ensure visual balls match available numbers
+            this.drum.setBallCount(this.engine.availableNumbers.length);
+
+
             // Restore history track visual (last 10 balls in reverse order)
             this.restoreHistoryTrack();
             
