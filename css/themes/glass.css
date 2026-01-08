@@ -1,0 +1,58 @@
+:root {
+    /* THEME: ETHEREAL / GLASS */
+    
+    --color-bg: #808080; /* Fallback */
+    --color-panel: rgba(255, 255, 255, 0.1);
+    --color-border: rgba(255, 255, 255, 0.2);
+    
+    --color-accent: rgba(255, 255, 255, 0.3);
+    --color-secondary: #ffffff;
+    
+    --color-text-main: #ffffff;
+    --color-text-muted: rgba(255, 255, 255, 0.6);
+    
+    /* STATES */
+    --color-drawn: #ffffff;
+    --bg-drawn: rgba(255, 255, 255, 0.25);
+}
+
+body {
+    background: linear-gradient(45deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50% }
+    50% { background-position: 100% 50% }
+    100% { background-position: 0% 50% }
+}
+
+.panel-container, .main-board, .last-balls-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+.board-cell {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.board-cell.drawn {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 15px rgba(255,255,255,0.4);
+    color: #000;
+    font-weight: 700;
+}
+
+.big-ball {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}

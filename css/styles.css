@@ -1,0 +1,290 @@
+:root {
+    /* TYPOGRAPHY */
+    --font-heading: 'Dela Gothic One', cursive;
+    --font-mono: 'Space Mono', monospace;
+    --font-ui: 'Outfit', sans-serif;
+
+    /* PALETTE - Industrial Dark Mode */
+    --color-bg: #050505;
+    --color-panel: #111111;
+    --color-border: #2a2a2a;
+    --color-accent: #ff3c00; /* Safety Orange */
+    --color-secondary: #00f0ff; /* Cyber Cyan */
+    --color-text-main: #e0e0e0;
+    --color-text-muted: #666666;
+    
+    /* STATES */
+    --color-drawn: #ffffff;
+    --bg-drawn: var(--color-accent);
+    
+    /* SPACING */
+    --gap-layout: 1rem;
+    --gap-grid: 0.25rem;
+    
+    /* DIMENSIONS */
+    --ball-size: 60px;
+    --players-bar-height: 120px;
+}
+
+/* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+    font-family: var(--font-ui);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* APP CONTAINER */
+.app-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0.25rem 0.5rem 0;
+}
+
+/* MAIN LAYOUT - GRID 80% 20% */
+.game-layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    gap: var(--gap-layout);
+    padding-bottom: 0;
+    min-height: 0; /* Prevent overflow issues */
+    max-height: calc(100vh - var(--players-bar-height) - 8px);
+    overflow: hidden;
+}
+
+.game-layout.no-players {
+    max-height: calc(100vh - 16px);
+}
+
+/* HEADERS */
+.section-header {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.25rem;
+}
+
+h2 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    letter-spacing: -0.05em;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+.game-layout:hover h2 {
+    color: var(--color-text-main);
+}
+
+/* BOARD SECTION */
+.board-container {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 2px;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    max-height: 100%;
+    padding: 4px;
+    place-items: center;
+}
+
+.bingo-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(0.65rem, 1.4vw, 1.1rem);
+    color: var(--color-text-muted);
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    border: 1px solid transparent;
+    aspect-ratio: 1;
+    width: clamp(28px, 5.5vw, 55px);
+    height: clamp(28px, 5.5vw, 55px);
+}
+
+.bingo-cell:hover {
+    border-color: var(--color-secondary);
+    color: var(--color-secondary);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+/* CAGE SECTION */
+.cage-container {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* CONTROLS BAR */
+.controls-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(255, 60, 0, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+/* CURRENT BALL DISPLAY - SPHERICAL */
+.current-draw {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.draw-label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.ball {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ffffff, #d1d1d1 20%, #999999 40%, #444444 80%, #222222 100%);
+    box-shadow: 
+        inset -5px -5px 15px rgba(0,0,0,0.6),
+        0 10px 20px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 4.5rem;
+    color: #111;
+    position: relative;
+    z-index: 10;
+}
+
+.ball::after {
+    content: '';
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    width: 20%;
+    height: 10%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.9), transparent 70%);
+    filter: blur(2px);
+}
+
+/* PLAYERS BAR */
+.players-dock {
+    height: 80px;
+    background: #000;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    gap: 1rem;
+    margin-top: 0;
+}
+
+.player-slot {
+    flex: 1;
+    height: 50px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-ui);
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+/* UTILITY / STATES */
+.bingo-cell.drawn {
+    background: var(--bg-drawn);
+    color: var(--color-drawn);
+    box-shadow: 0 0 8px var(--color-accent);
+    z-index: 1;
+    border: none;
+}

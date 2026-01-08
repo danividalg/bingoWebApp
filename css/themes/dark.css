@@ -1,0 +1,27 @@
+:root {
+    /* THEME: INDUSTRIAL / DARK (DEFAULT) */
+    
+    --color-bg: #050505;
+    --color-panel: #111111;
+    --color-border: #2a2a2a;
+    
+    --color-accent: #ff3c00; /* Safety Orange */
+    --color-secondary: #00f0ff; /* Cyber Cyan */
+    
+    --color-text-main: #e0e0e0;
+    --color-text-muted: #666666;
+    
+    /* STATES */
+    --color-drawn: #ffffff;
+    --bg-drawn: var(--color-accent);
+}
+
+/* Reset specific overrides if coming from other themes */
+.board-cell {
+    background: transparent;
+    box-shadow: none;
+}
+
+body {
+    background-image: none;
+}

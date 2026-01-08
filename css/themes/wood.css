@@ -1,0 +1,47 @@
+:root {
+    /* THEME: ORGANIC / WOOD */
+    
+    --color-bg: #3E2723;
+    --color-panel: #5D4037;
+    --color-border: #8D6E63;
+    
+    --color-accent: #2E7D32; /* Felt Green */
+    --color-secondary: #FFB74D; /* Varnish Gold */
+    
+    --color-text-main: #EFEBE9;
+    --color-text-muted: #D7CCC8;
+    
+    /* STATES */
+    --color-drawn: #FFFFFF;
+    --bg-drawn: #1B5E20;
+}
+
+body {
+    background: 
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 8px),
+        linear-gradient(to bottom, #3E2723, #281815);
+}
+
+.panel-container, .main-board, .last-balls-panel {
+    background-image: linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(0,0,0,0.1));
+    border: 2px solid #5D4037;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.board-cell {
+    background-color: #6D4C41;
+    border-color: #4E342E;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.1), inset -1px -1px 0 rgba(0,0,0,0.2);
+}
+
+.board-cell.drawn {
+    background: radial-gradient(circle, #2E7D32 20%, #1B5E20 100%);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    border-color: #1B5E20;
+}
+
+.big-ball {
+    background: radial-gradient(circle at 30% 30%, #F5F5F5, #D7CCC8);
+    color: #3E2723;
+    border: 4px solid #8D6E63;
+}

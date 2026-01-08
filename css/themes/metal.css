@@ -1,0 +1,48 @@
+:root {
+    /* THEME: INDUSTRIAL / METAL */
+    
+    --color-bg: #2b2b2b;
+    --color-panel: #1a1a1a;
+    --color-border: #444;
+    
+    --color-accent: #00bcd4; /* Laser Blue */
+    --color-secondary: #b0bec5; /* Steel */
+    
+    --color-text-main: #eceff1;
+    --color-text-muted: #78909c;
+    
+    /* STATES */
+    --color-drawn: #000000;
+    --bg-drawn: var(--color-accent);
+}
+
+body {
+    background: 
+        radial-gradient(circle at 50% 50%, #37474f 0%, #263238 100%);
+}
+
+.panel-container, .main-board {
+    background: linear-gradient(135deg, #263238, #1c252a);
+    box-shadow: 
+        5px 5px 10px rgba(0,0,0,0.5),
+        -1px -1px 2px rgba(255,255,255,0.05);
+}
+
+.board-cell {
+    background: linear-gradient(to bottom, #37474f, #263238);
+    border: 1px solid #455a64;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05);
+}
+
+.board-cell.drawn {
+    background: linear-gradient(135deg, #00acc1, #00bcd4);
+    box-shadow: 0 0 15px var(--color-accent);
+    color: #000;
+    font-weight: 900;
+    border-color: #80deea;
+}
+
+.big-ball-display {
+    background: radial-gradient(circle, #263238, #000);
+    border: 4px solid #546e7a;
+}
