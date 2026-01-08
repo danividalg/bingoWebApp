@@ -82,11 +82,15 @@
     pointer-events: none;
 }
 
-/* DECORATIVE BALLS INSIDE */
+/* DECORATIVE BALLS INSIDE - Uses theme variables */
 .deco-ball {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff 0%, var(--ball-color, #ff6b6b) 30%, var(--ball-color-dark, #c0392b) 100%);
+    /* Uniform Theme Color: All balls share the theme's primary ball color */
+    --b-base: var(--ball-color-1, var(--color-accent, #888));
+    --b-dark: color-mix(in srgb, var(--b-base) 60%, black);
+
+    background: radial-gradient(circle at 30% 30%, #fff 0%, var(--b-base) 30%, var(--b-dark) 100%);
     box-shadow: 
         inset -2px -2px 4px rgba(0,0,0,0.3),
         1px 1px 3px rgba(0,0,0,0.2);
@@ -94,15 +98,7 @@
     animation-delay: var(--delay, 0s);
 }
 
-/* Ball color variations */
-.deco-ball:nth-child(1) { --ball-color: #e74c3c; --ball-color-dark: #c0392b; }
-.deco-ball:nth-child(2) { --ball-color: #3498db; --ball-color-dark: #2980b9; }
-.deco-ball:nth-child(3) { --ball-color: #2ecc71; --ball-color-dark: #27ae60; }
-.deco-ball:nth-child(4) { --ball-color: #f39c12; --ball-color-dark: #d68910; }
-.deco-ball:nth-child(5) { --ball-color: #9b59b6; --ball-color-dark: #8e44ad; }
-.deco-ball:nth-child(6) { --ball-color: #1abc9c; --ball-color-dark: #16a085; }
-.deco-ball:nth-child(7) { --ball-color: #e91e63; --ball-color-dark: #c2185b; }
-.deco-ball:nth-child(8) { --ball-color: #00bcd4; --ball-color-dark: #0097a7; }
+/* Color variations removed to enforce theme uniformity */
 
 /* ANIMATIONS */
 @keyframes gentle-float {

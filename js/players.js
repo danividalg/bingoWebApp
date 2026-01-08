@@ -65,7 +65,19 @@ export class PlayerManager extends EventTarget {
         this._indexPlayerCards(player);
 
         this.players.push(player);
+        this.dispatchEvent(new CustomEvent('players:updated', { detail: this.players }));
         return player;
+    }
+
+    /**
+     * Elimina todos los jugadores y reinicia el estado del gestor.
+     */
+    clearAll() {
+        this.players = [];
+        this.drawnNumbers.clear();
+        this.drawnNumbersArray = [];
+        this.numberIndex.clear();
+        this.dispatchEvent(new CustomEvent('players:updated', { detail: this.players }));
     }
 
     /**

@@ -1,48 +1,404 @@
+/* ============================================================================
+   THEME: CYBERNETIC METAL - Futuristic Neon Tech
+   Aesthetic: Holographic displays, neon glow, circuit patterns, metallic surfaces
+   ============================================================================ */
+
 :root {
-    /* THEME: INDUSTRIAL / METAL */
+    /* Core Palette - Deep tech blues */
+    --color-bg: #0a0a12;
+    --color-panel: #12121f;
+    --color-border: #1e3a5f;
     
-    --color-bg: #2b2b2b;
-    --color-panel: #1a1a1a;
-    --color-border: #444;
+    /* Accent Colors - Electric neon */
+    --color-accent: #00f5ff; /* Cyan neon */
+    --color-secondary: #ff00ff; /* Magenta neon */
     
-    --color-accent: #00bcd4; /* Laser Blue */
-    --color-secondary: #b0bec5; /* Steel */
+    /* Text Colors */
+    --color-text-main: #e0e8ff;
+    --color-text-muted: #5a6a8a;
     
-    --color-text-main: #eceff1;
-    --color-text-muted: #78909c;
+    /* States */
+    --color-drawn: #0a0a12;
+    --bg-drawn: #00f5ff;
     
-    /* STATES */
-    --color-drawn: #000000;
-    --bg-drawn: var(--color-accent);
+    /* Circuit pattern texture */
+    --texture-circuit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cpath d='M10 10h80M10 10v30M90 10v50M10 40h40M50 40v30M10 70h40M50 70h40M90 60h-20M70 60v30M70 90h-60M10 90v-20' stroke='%231e3a5f' stroke-width='1' fill='none' opacity='0.4'/%3E%3Ccircle cx='10' cy='10' r='3' fill='%2300f5ff20'/%3E%3Ccircle cx='90' cy='10' r='3' fill='%2300f5ff20'/%3E%3Ccircle cx='50' cy='40' r='3' fill='%2300f5ff20'/%3E%3Ccircle cx='10' cy='70' r='3' fill='%2300f5ff20'/%3E%3Ccircle cx='90' cy='90' r='3' fill='%23ff00ff20'/%3E%3C/svg%3E");
+    
+    /* Ball colors - Neon spectrum */
+    --ball-color-1: #00f5ff;
+    --ball-color-2: #ff00ff;
+    --ball-color-3: #00ff88;
+    --ball-color-4: #ff4488;
+    --ball-color-5: #8844ff;
+    --ball-color-6: #44ffff;
+    --ball-color-7: #ff8800;
+    --ball-color-8: #00ff44;
+    
+    /* Fonts */
+    --font-heading: 'Dela Gothic One', 'Orbitron', sans-serif;
+    --font-ui: 'Space Mono', monospace;
+    --font-mono: 'Space Mono', monospace;
 }
 
+/* === BODY - Clean dark background === */
 body {
+    background: linear-gradient(180deg, #0a0a12 0%, #050508 100%);
+    background-attachment: fixed;
+}
+
+/* Scan line overlay */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,245,255,0.015) 2px,
+        rgba(0,245,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* Glowing accent lines */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, #00f5ff, transparent);
+    box-shadow: 0 0 20px #00f5ff, 0 0 40px #ff00ff;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* === PANELS === */
+.board-container {
     background: 
-        radial-gradient(circle at 50% 50%, #37474f 0%, #263238 100%);
-}
-
-.panel-container, .main-board {
-    background: linear-gradient(135deg, #263238, #1c252a);
+        var(--texture-circuit),
+        radial-gradient(ellipse at 20% 20%, rgba(0,245,255,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(255,0,255,0.05) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(30,58,95,0.1) 0%, rgba(18,18,31,0.95) 100%);
+    border: 1px solid #1e3a5f;
     box-shadow: 
-        5px 5px 10px rgba(0,0,0,0.5),
-        -1px -1px 2px rgba(255,255,255,0.05);
+        inset 0 0 40px rgba(0,245,255,0.03),
+        0 0 30px rgba(0,0,0,0.5),
+        0 0 2px #00f5ff40;
+    backdrop-filter: blur(8px);
+    position: relative;
 }
 
-.board-cell {
-    background: linear-gradient(to bottom, #37474f, #263238);
-    border: 1px solid #455a64;
-    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05);
+.cage-container,
+.modal-content,
+.players-dock {
+    background: 
+        linear-gradient(135deg, rgba(30,58,95,0.1) 0%, rgba(18,18,31,0.95) 100%);
+    border: 1px solid #1e3a5f;
+    box-shadow: 
+        inset 0 0 40px rgba(0,245,255,0.03),
+        0 0 30px rgba(0,0,0,0.5),
+        0 0 2px #00f5ff40;
+    backdrop-filter: blur(8px);
+    position: relative;
 }
 
-.board-cell.drawn {
-    background: linear-gradient(135deg, #00acc1, #00bcd4);
-    box-shadow: 0 0 15px var(--color-accent);
-    color: #000;
+/* Neon corner accents */
+.board-container::before,
+.cage-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    border-top: 2px solid #00f5ff;
+    border-left: 2px solid #00f5ff;
+    box-shadow: -2px -2px 10px #00f5ff40;
+    border-radius: 0;
+}
+
+.board-container::after,
+.cage-container::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-bottom: 2px solid #ff00ff;
+    border-right: 2px solid #ff00ff;
+    box-shadow: 2px 2px 10px #ff00ff40;
+    border-radius: 0;
+}
+
+/* === BINGO CELLS === */
+.bingo-cell {
+    background: 
+        radial-gradient(circle at center, rgba(0,245,255,0.02) 0%, transparent 70%),
+        linear-gradient(145deg, #15152a 0%, #0a0a12 100%);
+    border: 1px solid #1e3a5f;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    color: #5a6a8a;
+    font-family: var(--font-mono);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bingo-cell:hover {
+    border-color: #00f5ff;
+    color: #00f5ff;
+    box-shadow: 
+        inset 0 0 15px rgba(0,245,255,0.1),
+        0 0 20px rgba(0,245,255,0.3);
+    text-shadow: 0 0 10px #00f5ff;
+}
+
+.bingo-cell.drawn {
+    background: 
+        radial-gradient(circle at 30% 30%, #88ffff 0%, #00f5ff 40%, #00a0aa 100%);
+    border-color: #00f5ff;
+    color: #0a0a12;
     font-weight: 900;
-    border-color: #80deea;
+    box-shadow: 
+        0 0 30px rgba(0,245,255,0.6),
+        0 0 60px rgba(0,245,255,0.3),
+        inset 0 -2px 4px rgba(0,0,0,0.2);
+    animation: neon-pulse 2s ease-in-out infinite;
 }
 
-.big-ball-display {
-    background: radial-gradient(circle, #263238, #000);
-    border: 4px solid #546e7a;
+@keyframes neon-pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(0,245,255,0.6), 0 0 60px rgba(0,245,255,0.3); }
+    50% { box-shadow: 0 0 40px rgba(0,245,255,0.8), 0 0 80px rgba(0,245,255,0.4); }
+}
+
+/* === DRUM - Holographic sphere === */
+.drum {
+    background: 
+        radial-gradient(ellipse 50% 30% at 30% 25%, rgba(0,245,255,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 20% at 70% 75%, rgba(255,0,255,0.2) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(18,18,31,0.8) 0%, rgba(10,10,18,0.9) 100%);
+    border: none;
+    box-shadow: 
+        inset 0 0 80px rgba(0,245,255,0.1),
+        inset 20px 20px 40px rgba(0,245,255,0.05),
+        inset -20px -20px 40px rgba(255,0,255,0.05),
+        0 0 50px rgba(0,245,255,0.3),
+        0 0 100px rgba(255,0,255,0.2);
+    animation: holographic-float 4s ease-in-out infinite;
+}
+
+@keyframes holographic-float {
+    0%, 100% { 
+        transform: translateY(0) rotateX(-5deg);
+        box-shadow: 
+            inset 0 0 80px rgba(0,245,255,0.1),
+            0 0 50px rgba(0,245,255,0.3),
+            0 0 100px rgba(255,0,255,0.2);
+    }
+    50% { 
+        transform: translateY(-10px) rotateX(-5deg);
+        box-shadow: 
+            inset 0 0 100px rgba(0,245,255,0.15),
+            0 0 70px rgba(0,245,255,0.4),
+            0 0 120px rgba(255,0,255,0.3);
+    }
+}
+
+.drum::before {
+    background: 
+        radial-gradient(ellipse at center, rgba(0,245,255,0.6) 0%, transparent 60%),
+        radial-gradient(ellipse at center, rgba(255,0,255,0.3) 0%, transparent 80%);
+}
+
+/* === CURRENT BALL === */
+.ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #ffffff 0%, #00f5ff 15%, #00a0aa 50%, #005555 80%, #0a0a12 100%);
+    border: 2px solid #00f5ff;
+    box-shadow: 
+        inset -8px -8px 20px rgba(0,0,0,0.5),
+        0 0 40px rgba(0,245,255,0.5),
+        0 0 80px rgba(0,245,255,0.3);
+    color: #0a0a12;
+    text-shadow: 0 0 2px rgba(255,255,255,0.5);
+}
+
+.ball::after {
+    background: radial-gradient(circle, rgba(255,255,255,0.9), transparent 50%);
+}
+
+/* === HISTORY BALLS === */
+.history-ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #3a3a5f 0%, #1e1e3a 60%, #0a0a12 100%);
+    border: 1px solid #1e3a5f;
+    box-shadow: 
+        inset -2px -2px 6px rgba(0,0,0,0.5),
+        0 0 10px rgba(0,245,255,0.1);
+    color: #8899bb;
+}
+
+.history-ball:first-child {
+    background: radial-gradient(circle at 30% 30%, #00f5ff 0%, #0088aa 60%, #004455 100%);
+    border-color: #00f5ff;
+    color: #0a0a12;
+    box-shadow: 
+        0 0 25px rgba(0,245,255,0.6),
+        inset -3px -3px 8px rgba(0,0,0,0.3);
+}
+
+/* === BUTTONS === */
+.btn-primary {
+    background: linear-gradient(135deg, #00f5ff 0%, #0088aa 100%);
+    border: none;
+    color: #0a0a12;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 
+        0 0 20px rgba(0,245,255,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #44ffff 0%, #00bbcc 100%);
+    box-shadow: 
+        0 0 40px rgba(0,245,255,0.6),
+        0 5px 30px rgba(0,245,255,0.4);
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid #1e3a5f;
+    color: #5a6a8a;
+}
+
+.btn-icon:hover {
+    border-color: #00f5ff;
+    color: #00f5ff;
+    box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+
+/* === HEADERS === */
+h2, .section-header h2 {
+    color: #00f5ff;
+    text-shadow: 
+        0 0 10px #00f5ff,
+        0 0 20px rgba(0,245,255,0.5);
+    font-family: var(--font-heading);
+    letter-spacing: 3px;
+}
+
+.section-header {
+    border-bottom: 1px solid #1e3a5f;
+}
+
+/* === PLAYER CARDS === */
+.player-card {
+    background: linear-gradient(145deg, #15152a 0%, #0a0a12 100%);
+    border: 1px solid #1e3a5f;
+}
+
+.player-card:hover {
+    border-color: #00f5ff;
+    box-shadow: 0 0 25px rgba(0,245,255,0.3);
+}
+
+.player-card.winner {
+    border-color: #ff00ff;
+    box-shadow: 0 0 30px rgba(255,0,255,0.4);
+}
+
+.mini-cell.marked {
+    background: linear-gradient(145deg, #00f5ff, #0088aa);
+    color: #0a0a12;
+    box-shadow: 0 0 8px rgba(0,245,255,0.5);
+}
+
+/* === MODAL === */
+.modal-header {
+    background: linear-gradient(135deg, #15152a 0%, #0a0a12 100%);
+    border-bottom: 1px solid #1e3a5f;
+}
+
+.modal-title {
+    color: #00f5ff;
+    font-family: var(--font-mono);
+    text-shadow: 0 0 10px rgba(0,245,255,0.5);
+}
+
+.group-title {
+    color: #ff00ff;
+    border-bottom-color: #1e3a5f;
+    text-shadow: 0 0 8px rgba(255,0,255,0.3);
+}
+
+/* === FORM ELEMENTS === */
+.form-input {
+    background: #0a0a12;
+    border: 1px solid #1e3a5f;
+    color: #e0e8ff;
+}
+
+.form-input:focus {
+    border-color: #00f5ff;
+    box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+
+/* === SLIDERS === */
+input[type="range"] {
+    accent-color: #00f5ff;
+}
+
+.slider {
+    background-color: #1e3a5f;
+}
+
+input:checked + .slider {
+    background: linear-gradient(90deg, #00f5ff, #ff00ff);
+}
+
+/* === THEME THUMBNAIL === */
+.theme-thumbnail {
+    border: 1px solid #1e3a5f;
+}
+
+.theme-thumbnail.active {
+    border-color: #00f5ff;
+    box-shadow: 0 0 20px rgba(0,245,255,0.5);
+}
+
+/* === CELEBRATION === */
+.celebration-title {
+    -webkit-text-stroke: 3px #00f5ff;
+    text-shadow: 
+        0 0 30px #00f5ff,
+        0 0 60px rgba(255,0,255,0.5);
+    animation: celebration-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes celebration-glow {
+    from { text-shadow: 0 0 30px #00f5ff, 0 0 60px rgba(255,0,255,0.5); }
+    to { text-shadow: 0 0 50px #ff00ff, 0 0 100px rgba(0,245,255,0.5); }
+}
+
+/* === HISTORY TRACK === */
+.history-track {
+    background: rgba(10,10,18,0.8);
+    border: 1px solid #1e3a5f;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* === DECORATIVE BALLS - Neon glow === */
+.deco-ball {
+    box-shadow: 
+        inset -2px -2px 4px rgba(0,0,0,0.4),
+        0 0 10px var(--ball-color, #00f5ff);
 }

@@ -81,7 +81,6 @@ class App {
     }
 
     async init() {
-        console.log('[App] Initializing AVNT-GRD Bingo...');
         
         // 1. Initialize Subsystems
         // Drum init happens on DOMContentLoaded in its own file? No, we refactored it to be manual if needed.
@@ -111,8 +110,6 @@ class App {
         // 4. Initial Render
         this.updateUI();
         this.updatePlayButton();
-
-        console.log('[App] Ready.');
     }
 
     bindEvents() {
@@ -178,15 +175,29 @@ class App {
         if (resetSystemBtn) {
             resetSystemBtn.addEventListener('click', async () => {
                 const confirmed = await this.showConfirm(
-                    'Reiniciar Sistema',
-                    '¿Estás seguro de que quieres reiniciar todo el sistema? Se perderán todos los jugadores y el progreso.',
-                    '⚠️'
+                    'RESET TOTAL',
+                    '¿REINICIAR TODO? Se borrarán jugadores, progreso y configuración.',
+                    '☢️'
                 );
                 if (confirmed) {
+                    // 1. Reset Game Engine
                     this.engine.reset();
+                    
+                    // 2. Clear All Players
+                    this.players.clearAll();
+                    
+                    // 3. Reset Settings
+                    this.settings.resetToDefaults();
+
+                    // 4. Reset Local Counters in App
+                    this.totalLines = 0;
+                    this.totalBingos = 0;
+
                     // Close settings modal
                     const settingsModal = document.getElementById('settings-modal');
                     if (settingsModal) settingsModal.classList.add('hidden');
+                    
+                    this.ui.showToast('SISTEMA REINICIADO', 'system');
                 }
             });
         }
@@ -503,8 +514,6 @@ class App {
         
         // Reset animation state
         this.isAnimating = false;
-        
-        console.log('[App] Game reset complete.');
     }
 
     /**

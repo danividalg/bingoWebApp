@@ -13,12 +13,12 @@ export class SettingsManager extends EventTarget {
         
         // Themes definition for reference/UI generation
         this.themes = [
-            { id: 'light', name: 'Light', color: '#ffffff' },
+            { id: 'light', name: 'Light', color: '#f5f5f7' },
             { id: 'dark', name: 'Dark', color: '#1a1a1a' },
-            { id: 'glass', name: 'Glass', color: 'rgba(255,255,255,0.2)' },
-            { id: 'cyberpunk', name: 'Cyberpunk', color: '#fcee0a' },
-            { id: 'wood', name: 'Wood', color: '#8b4513' },
-            { id: 'metal', name: 'Metal', color: '#708090' }
+            { id: 'glass', name: 'Glass', color: 'linear-gradient(135deg, rgba(255,255,255,0.3), rgba(200,200,200,0.1))' },
+            { id: 'steampunk', name: 'Steampunk', color: '#8B4513' },
+            { id: 'wood', name: 'Wood', color: '#5D4037' },
+            { id: 'metal', name: 'Metal', color: '#1a1a2e' }
         ];
 
         this.init();
@@ -39,6 +39,54 @@ export class SettingsManager extends EventTarget {
     saveSettings() {
         localStorage.setItem('bingo_settings', JSON.stringify(this.state));
         this.dispatchEvent(new CustomEvent('settings:changed', { detail: this.state }));
+    }
+
+    resetToDefaults() {
+        this.state = {
+            theme: 'light',
+            mode: 'manual',
+            timerDuration: 3,
+            volume: 50,
+            maxLines: 1,      
+            maxBingos: 1,     
+            voiceEnabled: true
+        };
+        this.saveSettings();
+        this.applySettings();
+        
+        // Update UI elements manually since they are bound to state on init, 
+        // but inputs need to reflect new state
+        this._updateUIInputs();
+    }
+
+    _updateUIInputs() {
+        // Update Theme
+        const themeGrid = document.querySelector('.theme-grid');
+        if (themeGrid) {
+            themeGrid.querySelectorAll('.theme-thumbnail').forEach(t => {
+                t.classList.toggle('active', t.dataset.theme === this.state.theme);
+            });
+        }
+        
+        // Update Mode
+        const modeSwitch = document.getElementById('setting-mode');
+        if (modeSwitch) {
+            modeSwitch.checked = this.state.mode === 'auto';
+            document.getElementById('timer-control')?.classList.toggle('disabled', !modeSwitch.checked);
+        }
+
+        // Update Ranges
+        const updateRange = (id, val, displaySuffix = '') => {
+            const el = document.getElementById(id);
+            const disp = document.getElementById(id + '-val');
+            if (el) el.value = val;
+            if (disp) disp.textContent = val + displaySuffix;
+        };
+
+        updateRange('setting-timer', this.state.timerDuration, 's');
+        updateRange('setting-volume', this.state.volume);
+        updateRange('setting-max-lines', this.state.maxLines);
+        updateRange('setting-max-bingos', this.state.maxBingos);
     }
 
     // Getters
@@ -103,89 +151,88 @@ export class SettingsManager extends EventTarget {
         this.applyAudio();
     }
 
-    // UI Binding
+    // UI Binding - Refactored to reduce cognitive complexity
     bindUI() {
-        // Theme Selection
+        this._bindThemeSelection();
+        this._bindModeSwitch();
+        this._bindTimerSlider();
+        this._bindVolumeControl();
+        this._bindLimitsControls();
+    }
+
+    _bindThemeSelection() {
         const themeGrid = document.querySelector('.theme-grid');
-        if (themeGrid) {
-            themeGrid.innerHTML = this.themes.map(t => `
-                <div class="theme-thumbnail ${this.state.theme === t.id ? 'active' : ''}" 
-                     data-theme="${t.id}" 
-                     style="background: ${t.color};"
-                     title="${t.name}">
-                     <span class="theme-name">${t.name}</span>
-                </div>
-            `).join('');
+        if (!themeGrid) return;
 
-            themeGrid.querySelectorAll('.theme-thumbnail').forEach(el => {
-                el.addEventListener('click', () => {
-                    // Update UI state immediately
-                    themeGrid.querySelectorAll('.theme-thumbnail').forEach(t => t.classList.remove('active'));
-                    el.classList.add('active');
-                    this.setTheme(el.dataset.theme);
-                });
+        themeGrid.innerHTML = this.themes.map(t => `
+            <div class="theme-thumbnail ${this.state.theme === t.id ? 'active' : ''}" 
+                 data-theme="${t.id}" 
+                 title="${t.name}">
+                 <span class="theme-name">${t.name}</span>
+            </div>
+        `).join('');
+
+        themeGrid.querySelectorAll('.theme-thumbnail').forEach(el => {
+            el.addEventListener('click', () => {
+                themeGrid.querySelectorAll('.theme-thumbnail').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+                this.setTheme(el.dataset.theme);
             });
-        }
+        });
+    }
 
-        // Mode Slider
+    _bindModeSwitch() {
         const modeSwitch = document.getElementById('setting-mode');
-        if (modeSwitch) {
-            modeSwitch.checked = this.state.mode === 'auto';
-            modeSwitch.addEventListener('change', (e) => {
-                this.setMode(e.target.checked ? 'auto' : 'manual');
-                // Toggle slider visibility
-                document.getElementById('timer-control').classList.toggle('disabled', !e.target.checked);
-            });
-        }
+        if (!modeSwitch) return;
 
-        // Timer Slider
+        modeSwitch.checked = this.state.mode === 'auto';
+        modeSwitch.addEventListener('change', (e) => {
+            this.setMode(e.target.checked ? 'auto' : 'manual');
+            document.getElementById('timer-control')?.classList.toggle('disabled', !e.target.checked);
+        });
+    }
+
+    _bindTimerSlider() {
         const timerInput = document.getElementById('setting-timer');
         const timerValue = document.getElementById('setting-timer-val');
-        if (timerInput) {
-            timerInput.value = this.state.timerDuration;
-            if(timerValue) timerValue.textContent = `${this.state.timerDuration}s`;
-            
-            timerInput.addEventListener('input', (e) => {
-                if(timerValue) timerValue.textContent = `${e.target.value}s`;
-                this.setTimer(Number.parseInt(e.target.value, 10));
-            });
-        }
+        if (!timerInput) return;
 
-        // Volume
+        timerInput.value = this.state.timerDuration;
+        if (timerValue) timerValue.textContent = `${this.state.timerDuration}s`;
+        
+        timerInput.addEventListener('input', (e) => {
+            if (timerValue) timerValue.textContent = `${e.target.value}s`;
+            this.setTimer(Number.parseInt(e.target.value, 10));
+        });
+    }
+
+    _bindVolumeControl() {
         const volInput = document.getElementById('setting-volume');
-        if (volInput) {
-            volInput.value = this.state.volume;
-            volInput.addEventListener('input', (e) => {
-                this.setVolume(Number.parseInt(e.target.value, 10));
-            });
-        }
+        if (!volInput) return;
 
-        // Limits: Max Lines
-        const maxLinesInput = document.getElementById('setting-max-lines');
-        const maxLinesValue = document.getElementById('setting-max-lines-val');
-        if (maxLinesInput) {
-            maxLinesInput.value = this.state.maxLines;
-            if (maxLinesValue) maxLinesValue.textContent = this.state.maxLines === 0 ? '∞' : this.state.maxLines;
-            
-            maxLinesInput.addEventListener('input', (e) => {
-                const val = Number.parseInt(e.target.value, 10);
-                if (maxLinesValue) maxLinesValue.textContent = val === 0 ? '∞' : val;
-                this.setMaxLines(val);
-            });
-        }
+        volInput.value = this.state.volume;
+        volInput.addEventListener('input', (e) => {
+            this.setVolume(Number.parseInt(e.target.value, 10));
+        });
+    }
 
-        // Limits: Max Bingos
-        const maxBingosInput = document.getElementById('setting-max-bingos');
-        const maxBingosValue = document.getElementById('setting-max-bingos-val');
-        if (maxBingosInput) {
-            maxBingosInput.value = this.state.maxBingos;
-            if (maxBingosValue) maxBingosValue.textContent = this.state.maxBingos === 0 ? '∞' : this.state.maxBingos;
-            
-            maxBingosInput.addEventListener('input', (e) => {
-                const val = Number.parseInt(e.target.value, 10);
-                if (maxBingosValue) maxBingosValue.textContent = val === 0 ? '∞' : val;
-                this.setMaxBingos(val);
-            });
-        }
+    _bindLimitsControls() {
+        this._bindRangeControl('setting-max-lines', 'setting-max-lines-val', this.state.maxLines, (val) => this.setMaxLines(val));
+        this._bindRangeControl('setting-max-bingos', 'setting-max-bingos-val', this.state.maxBingos, (val) => this.setMaxBingos(val));
+    }
+
+    _bindRangeControl(inputId, valueId, initialValue, setter) {
+        const input = document.getElementById(inputId);
+        const valueDisplay = document.getElementById(valueId);
+        if (!input) return;
+
+        input.value = initialValue;
+        if (valueDisplay) valueDisplay.textContent = initialValue === 0 ? '∞' : initialValue;
+        
+        input.addEventListener('input', (e) => {
+            const val = Number.parseInt(e.target.value, 10);
+            if (valueDisplay) valueDisplay.textContent = val === 0 ? '∞' : val;
+            setter(val);
+        });
     }
 }

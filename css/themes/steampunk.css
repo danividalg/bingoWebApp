@@ -1,0 +1,312 @@
+/* ============================================================================
+   THEME: STEAMPUNK - Victorian Industrial Era
+   Aesthetic: Brass, copper, gears, steam, leather, vintage gauges
+   ============================================================================ */
+
+:root {
+    /* Core Palette */
+    --color-bg: #1a1209;
+    --color-panel: #2d2215;
+    --color-border: #8b6914;
+    
+    /* Accent Colors */
+    --color-accent: #cd7f32; /* Bronze */
+    --color-secondary: #b8860b; /* Dark Goldenrod */
+    
+    /* Text Colors */
+    --color-text-main: #e8d5b7;
+    --color-text-muted: #9a8567;
+    
+    /* States */
+    --color-drawn: #1a1209;
+    --bg-drawn: #cd7f32;
+    
+    /* Steampunk-specific textures */
+    --texture-leather: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' fill='%232d2215'/%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+    --texture-metal: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='%238b6914' opacity='0.6'/%3E%3Ccircle cx='10' cy='10' r='1' fill='%238b6914' opacity='0.4'/%3E%3Ccircle cx='50' cy='50' r='1' fill='%238b6914' opacity='0.4'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill='url(%23g)' width='60' height='60'/%3E%3C/svg%3E");
+    
+    /* Ball colors - Brass/Bronze tones */
+    --ball-color-1: #cd7f32;
+    --ball-color-2: #b8860b;
+    --ball-color-3: #daa520;
+    --ball-color-4: #996515;
+    --ball-color-5: #c9a227;
+    --ball-color-6: #a67c00;
+    --ball-color-7: #bf9b30;
+    --ball-color-8: #8b6914;
+    
+    /* Fonts */
+    --font-heading: 'Dela Gothic One', 'Copperplate', serif;
+    --font-ui: 'Outfit', Georgia, serif;
+}
+
+/* === BODY - Clean dark background === */
+body {
+    background: linear-gradient(180deg, #1a1209 0%, #0d0906 100%);
+    background-attachment: fixed;
+}
+
+body::before {
+    display: none;
+}
+
+/* === PANELS === */
+.board-container {
+    background: 
+        var(--texture-leather),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath d='M100 20 L105 40 L115 38 L120 45 L130 42 L140 55 L150 50 L155 65 L165 62 L168 78 L178 77 L180 92 L190 93 L190 107 L180 108 L178 123 L168 122 L165 138 L155 135 L150 150 L140 145 L130 158 L120 155 L115 162 L105 160 L100 180 L95 160 L85 162 L80 155 L70 158 L60 145 L50 150 L45 135 L35 138 L32 122 L22 123 L20 108 L10 107 L10 93 L20 92 L22 77 L32 78 L35 62 L45 65 L50 50 L60 55 L70 42 L80 45 L85 38 L95 40 Z' fill='none' stroke='%238b691440' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='25' fill='none' stroke='%238b691430' stroke-width='2'/%3E%3C/svg%3E") center/300px 300px,
+        var(--texture-metal),
+        linear-gradient(145deg, #2d2215 0%, #1f1810 100%);
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #cd7f32, #8b6914, #cd7f32) 1;
+    box-shadow: 
+        inset 0 0 30px rgba(0,0,0,0.5),
+        0 0 20px rgba(205, 127, 50, 0.2),
+        0 8px 32px rgba(0,0,0,0.6);
+    position: relative;
+}
+
+.cage-container,
+.modal-content,
+.players-dock {
+    background: 
+        var(--texture-leather),
+        linear-gradient(145deg, #2d2215 0%, #1f1810 100%);
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #cd7f32, #8b6914, #cd7f32) 1;
+    box-shadow: 
+        inset 0 0 30px rgba(0,0,0,0.5),
+        0 0 20px rgba(205, 127, 50, 0.2),
+        0 8px 32px rgba(0,0,0,0.6);
+    position: relative;
+}
+
+/* Rivets/bolts decoration */
+.board-container::before,
+.cage-container::before {
+    content: "⚙";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: #cd7f32;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* === BINGO CELLS === */
+.bingo-cell {
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(205,127,50,0.1) 0%, transparent 50%),
+        linear-gradient(145deg, #3a2c1a 0%, #2d2215 100%);
+    border: 2px solid #5c4a2a;
+    box-shadow: 
+        inset 1px 1px 2px rgba(205,127,50,0.2),
+        inset -1px -1px 2px rgba(0,0,0,0.3);
+    color: #c9a86c;
+    font-family: 'Space Mono', monospace;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.bingo-cell:hover {
+    border-color: #cd7f32;
+    color: #e8d5b7;
+    box-shadow: 
+        inset 0 0 10px rgba(205,127,50,0.3),
+        0 0 15px rgba(205,127,50,0.3);
+}
+
+.bingo-cell.drawn {
+    background: 
+        radial-gradient(circle at 30% 30%, #daa520 0%, #cd7f32 50%, #996515 100%);
+    border-color: #daa520;
+    color: #1a1209;
+    font-weight: 900;
+    box-shadow: 
+        0 0 20px rgba(218,165,32,0.5),
+        inset 0 -2px 4px rgba(0,0,0,0.3);
+    text-shadow: none;
+}
+
+/* === DRUM SPHERE - Steam-powered brass cage === */
+.drum {
+    background: 
+        radial-gradient(ellipse 50% 30% at 30% 25%, rgba(218,165,32,0.4) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 80% at 50% 50%, rgba(205,127,50,0.15) 0%, rgba(139,105,20,0.1) 40%, transparent 70%),
+        radial-gradient(circle at 50% 50%, rgba(184,134,11,0.1) 0%, rgba(45,34,21,0.2) 100%);
+    border: 4px solid #8b6914;
+    box-shadow: 
+        inset 0 0 60px rgba(205,127,50,0.15),
+        inset 20px 20px 40px rgba(218,165,32,0.1),
+        inset -20px -20px 40px rgba(0,0,0,0.4),
+        0 15px 40px rgba(0,0,0,0.6),
+        0 0 60px rgba(205,127,50,0.2);
+}
+
+.drum::before {
+    background: radial-gradient(ellipse at center, rgba(218,165,32,0.5) 0%, transparent 70%);
+}
+
+.drum::after {
+    background: radial-gradient(ellipse at center, rgba(205,127,50,0.25) 0%, transparent 70%);
+}
+
+/* === CURRENT BALL === */
+.ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #fff8e7 0%, #daa520 20%, #cd7f32 50%, #8b6914 80%, #5c4a2a 100%);
+    border: 3px solid #b8860b;
+    box-shadow: 
+        inset -8px -8px 20px rgba(0,0,0,0.4),
+        0 10px 30px rgba(0,0,0,0.5),
+        0 0 40px rgba(205,127,50,0.3);
+    color: #1a1209;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+}
+
+.ball::after {
+    background: radial-gradient(circle, rgba(255,248,231,0.8), transparent 60%);
+}
+
+/* === HISTORY BALLS === */
+.history-ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #b8860b 0%, #8b6914 60%, #5c4a2a 100%);
+    border: 2px solid #cd7f32;
+    box-shadow: 
+        inset -2px -2px 6px rgba(0,0,0,0.4),
+        0 3px 8px rgba(0,0,0,0.4);
+    color: #e8d5b7;
+}
+
+.history-ball:first-child {
+    background: radial-gradient(circle at 30% 30%, #daa520 0%, #cd7f32 60%, #996515 100%);
+    box-shadow: 
+        inset -3px -3px 8px rgba(0,0,0,0.3),
+        0 0 20px rgba(205,127,50,0.5);
+}
+
+/* === BUTTONS - Brass riveted style === */
+.btn-primary {
+    background: linear-gradient(145deg, #cd7f32 0%, #996515 100%);
+    border: 2px solid #8b6914;
+    color: #1a1209;
+    font-weight: 900;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
+    box-shadow: 
+        inset 1px 1px 2px rgba(255,255,255,0.3),
+        0 4px 12px rgba(0,0,0,0.4);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(145deg, #daa520 0%, #b8860b 100%);
+    box-shadow: 
+        inset 1px 1px 2px rgba(255,255,255,0.4),
+        0 6px 20px rgba(205,127,50,0.4);
+}
+
+.btn-icon {
+    background: linear-gradient(145deg, #3a2c1a 0%, #2d2215 100%);
+    border: 2px solid #5c4a2a;
+    color: #cd7f32;
+}
+
+.btn-icon:hover {
+    border-color: #cd7f32;
+    background: linear-gradient(145deg, #4a3c2a 0%, #3d3225 100%);
+    box-shadow: 0 0 15px rgba(205,127,50,0.3);
+}
+
+/* === HEADERS === */
+h2, .section-header h2 {
+    color: #cd7f32;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-family: var(--font-heading);
+    letter-spacing: 2px;
+}
+
+.section-header {
+    border-bottom: 2px solid #8b6914;
+}
+
+/* === PLAYER CARDS === */
+.player-card {
+    background: 
+        var(--texture-leather),
+        linear-gradient(145deg, #2d2215 0%, #1f1810 100%);
+    border: 2px solid #5c4a2a;
+}
+
+.player-card:hover {
+    border-color: #cd7f32;
+    box-shadow: 0 0 20px rgba(205,127,50,0.3);
+}
+
+.mini-cell.marked {
+    background: linear-gradient(145deg, #daa520, #cd7f32);
+    color: #1a1209;
+}
+
+/* === MODAL STYLES === */
+.modal-header {
+    background: linear-gradient(145deg, #3a2c1a 0%, #2d2215 100%);
+    border-bottom: 2px solid #8b6914;
+}
+
+.modal-title {
+    color: #cd7f32;
+    font-family: var(--font-heading);
+}
+
+.group-title {
+    color: #b8860b;
+    border-bottom-color: #5c4a2a;
+}
+
+/* === FORM ELEMENTS === */
+.form-input {
+    background: #1a1209;
+    border: 2px solid #5c4a2a;
+    color: #e8d5b7;
+}
+
+.form-input:focus {
+    border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205,127,50,0.3);
+}
+
+/* === SLIDERS === */
+input[type="range"] {
+    accent-color: #cd7f32;
+}
+
+.slider {
+    background-color: #3a2c1a;
+}
+
+input:checked + .slider {
+    background-color: #cd7f32;
+}
+
+/* === THEME THUMBNAIL === */
+.theme-thumbnail {
+    border: 2px solid #5c4a2a;
+}
+
+.theme-thumbnail.active {
+    border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205,127,50,0.5);
+}
+
+/* === CELEBRATION === */
+.celebration-title {
+    -webkit-text-stroke: 3px #cd7f32;
+    text-shadow: 0 0 40px rgba(205,127,50,0.5);
+}
+
+/* === HISTORY TRACK === */
+.history-track {
+    background: rgba(26,18,9,0.8);
+    border: 2px solid #5c4a2a;
+}

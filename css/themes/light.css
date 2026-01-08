@@ -1,46 +1,343 @@
+/* ============================================================================
+   THEME: LIGHT - Apple Design Language
+   Aesthetic: Clean, minimal, SF Pro inspired, soft shadows, generous whitespace
+   ============================================================================ */
+
 :root {
-    /* THEME: LUXURY / LIGHT */
+    /* Core Palette - Apple-inspired neutrals */
+    --color-bg: #f5f5f7;
+    --color-panel: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.08);
     
-    --color-bg: #F9F9F5;
-    --color-panel: #FFFFFF;
-    --color-border: #E5E0D8;
+    /* Accent Colors - Apple Blue */
+    --color-accent: #007aff;
+    --color-secondary: #34c759; /* Success green */
     
-    --color-accent: #D4AF37; /* Metallic Gold */
-    --color-secondary: #1A1A1A; /* Sharp Black */
+    /* Text Colors */
+    --color-text-main: #1d1d1f;
+    --color-text-muted: #86868b;
     
-    --color-text-main: #2C2C2C;
-    --color-text-muted: #8A8A8A;
+    /* States */
+    --color-drawn: #ffffff;
+    --bg-drawn: #007aff;
     
-    /* STATES */
-    --color-drawn: #FFFFFF;
-    --bg-drawn: var(--color-accent);
+    /* Ball colors - Vibrant iOS palette */
+    --ball-color-1: #007aff;
+    --ball-color-2: #34c759;
+    --ball-color-3: #ff9500;
+    --ball-color-4: #ff3b30;
+    --ball-color-5: #af52de;
+    --ball-color-6: #00c7be;
+    --ball-color-7: #ff2d55;
+    --ball-color-8: #5856d6;
     
-    /* OVERRIDES */
-    --shadow-soft: 0 4px 20px rgba(0,0,0,0.05);
+    /* Fonts - System fonts for that native feel */
+    --font-heading: 'Dela Gothic One', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    --font-mono: 'SF Mono', 'Space Mono', monospace;
 }
 
-.board-cell {
-    border-color: var(--color-border);
-    background: #FFFEFC;
-    color: var(--color-text-main);
+/* === BODY === */
+body {
+    background: #f5f5f7;
+    background-image: none;
+}
+
+body::before {
+    display: none;
+}
+
+/* === PANELS === */
+.board-container,
+.cage-container,
+.modal-content,
+.players-dock {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.board-container::before,
+.board-container::after,
+.cage-container::before,
+.cage-container::after {
+    display: none;
+}
+
+/* === BINGO CELLS === */
+.bingo-cell {
+    background: #f5f5f7;
+    border: none;
+    border-radius: 50%;
+    color: #1d1d1f;
+    font-family: var(--font-ui);
+    font-weight: 600;
     box-shadow: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.board-cell.drawn {
-    background: var(--color-accent);
-    color: white;
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+.bingo-cell:hover {
+    background: #e8e8ed;
+    color: #007aff;
+    transform: scale(1.05);
+    box-shadow: none;
     border-color: transparent;
 }
 
-.last-balls-panel .ball {
-    background: white;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-main);
+.bingo-cell.drawn {
+    background: #007aff;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 
+        0 2px 8px rgba(0, 122, 255, 0.35),
+        0 4px 16px rgba(0, 122, 255, 0.2);
+    border: none;
+    transform: scale(1);
 }
 
-body {
-    background-image: 
-        radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 20%);
+/* === DRUM - Clean glass orb === */
+.drum {
+    background: 
+        radial-gradient(ellipse 50% 30% at 30% 25%, rgba(255,255,255,0.9) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #ffffff 0%, #f5f5f7 40%, #e8e8ed 100%);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 
+        inset 0 0 60px rgba(255,255,255,0.8),
+        0 20px 60px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.drum::before {
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, transparent 60%);
+}
+
+.drum::after {
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.5) 0%, transparent 70%);
+}
+
+/* === CURRENT BALL === */
+.ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #ffffff 0%, #f5f5f7 20%, #e8e8ed 50%, #d1d1d6 100%);
+    border: none;
+    box-shadow: 
+        inset -8px -8px 20px rgba(0,0,0,0.08),
+        0 10px 40px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+    color: #1d1d1f;
+}
+
+.ball::after {
+    background: radial-gradient(circle, rgba(255,255,255,1), transparent 50%);
+}
+
+/* === HISTORY BALLS === */
+.history-ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #ffffff 0%, #e8e8ed 60%, #d1d1d6 100%);
+    border: none;
+    box-shadow: 
+        inset -2px -2px 6px rgba(0,0,0,0.05),
+        0 2px 6px rgba(0,0,0,0.08);
+    color: #1d1d1f;
+}
+
+.history-ball:first-child {
+    background: radial-gradient(circle at 30% 30%, #5ac8fa 0%, #007aff 60%, #0055cc 100%);
+    color: #ffffff;
+    box-shadow: 
+        0 4px 16px rgba(0, 122, 255, 0.3),
+        inset -3px -3px 8px rgba(0,0,0,0.1);
+}
+
+/* === BUTTONS === */
+.btn-primary {
+    background: #007aff;
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover {
+    background: #0066d6;
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.4);
+}
+
+.btn-icon {
+    background: #f5f5f7;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #86868b;
+    border-radius: 12px;
+}
+
+.btn-icon:hover {
+    background: #e8e8ed;
+    color: #007aff;
+    border-color: transparent;
+}
+
+/* === HEADERS === */
+h2, .section-header h2 {
+    color: #1d1d1f;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: none;
+}
+
+.section-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* === PLAYER CARDS === */
+.player-card {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.player-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 122, 255, 0.3);
+}
+
+.player-card.winner {
+    border-color: #34c759;
+    box-shadow: 0 4px 20px rgba(52, 199, 89, 0.25);
+}
+
+.mini-cell {
+    background: #f5f5f7;
+    border-radius: 4px;
+}
+
+.mini-cell.marked {
+    background: #007aff;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+/* === MODAL === */
+.modal-content {
+    border-radius: 20px;
+}
+
+.modal-header {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-title {
+    color: #1d1d1f;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.group-title {
+    color: #86868b;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+/* === FORM ELEMENTS === */
+.form-input {
+    background: #f5f5f7;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #1d1d1f;
+    border-radius: 10px;
+}
+
+.form-input:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+}
+
+/* === SLIDERS === */
+input[type="range"] {
+    accent-color: #007aff;
+}
+
+.slider {
+    background-color: #e8e8ed;
+    border-radius: 12px;
+}
+
+.slider::before {
+    border-radius: 10px;
+}
+
+input:checked + .slider {
+    background-color: #34c759;
+}
+
+/* === THEME THUMBNAIL === */
+.theme-thumbnail {
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+}
+
+.theme-thumbnail.active {
+    border-color: #007aff;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+}
+
+/* === CELEBRATION === */
+.celebration-overlay {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+}
+
+.celebration-title {
+    color: #007aff;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+}
+
+.celebration-details {
+    color: #1d1d1f;
+}
+
+/* === HISTORY TRACK === */
+.history-track {
+    background: #f5f5f7;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+}
+
+/* === PLAYERS DOCK === */
+.players-dock {
+    border-radius: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+}
+
+/* === CONFIRM MODAL === */
+.confirm-content {
+    border-radius: 20px;
+}
+
+.btn-confirm-yes {
+    background: #007aff;
+    border-radius: 10px;
+}
+
+.btn-confirm-no {
+    background: #f5f5f7;
+    color: #007aff;
+    border: none;
+    border-radius: 10px;
 }

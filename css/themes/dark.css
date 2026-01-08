@@ -1,27 +1,378 @@
+/* ============================================================================
+   THEME: DARK - Android Material Dark Mode
+   Aesthetic: Material You inspired, subtle elevation, desaturated colors
+   ============================================================================ */
+
 :root {
-    /* THEME: INDUSTRIAL / DARK (DEFAULT) */
+    /* Core Palette - Material Dark surfaces */
+    --color-bg: #121212;
+    --color-panel: #1e1e1e;
+    --color-border: #2c2c2c;
     
-    --color-bg: #050505;
-    --color-panel: #111111;
-    --color-border: #2a2a2a;
+    /* Accent Colors - Neon Rose / Cyber Punk */
+    --color-accent: #ff2a6d; /* Vibrant Pink/Red */
+    --color-secondary: #d1f7ff; /* Icy Blue for contrast */
     
-    --color-accent: #ff3c00; /* Safety Orange */
-    --color-secondary: #00f0ff; /* Cyber Cyan */
+    /* Text Colors */
+    --color-text-main: rgba(255, 255, 255, 0.90);
+    --color-text-muted: rgba(255, 255, 255, 0.60);
     
-    --color-text-main: #e0e0e0;
-    --color-text-muted: #666666;
+    /* States */
+    --color-drawn: #121212;
+    --bg-drawn: #ff2a6d;
     
-    /* STATES */
-    --color-drawn: #ffffff;
-    --bg-drawn: var(--color-accent);
+    /* Ball colors - Material palette */
+    --ball-color-1: #ff2a6d;
+    --ball-color-2: #05d9e8; /* Cyan - kept as secondary but not primary */
+    --ball-color-3: #ffc107; /* Amber */
+    --ball-color-4: #00e676; /* Green */
+    --ball-color-5: #d1f7ff;
+    --ball-color-6: #e040fb;
+    --ball-color-7: #ff5252;
+    --ball-color-8: #7c4dff;
+    
+    /* Fonts */
+    --font-heading: 'Dela Gothic One', 'Google Sans', 'Roboto', sans-serif;
+    --font-ui: 'Outfit', 'Google Sans', 'Roboto', sans-serif;
+    --font-mono: 'Space Mono', 'Roboto Mono', monospace;
 }
 
-/* Reset specific overrides if coming from other themes */
-.board-cell {
-    background: transparent;
+/* === BODY === */
+body {
+    background: #121212;
+    background-image: none;
+}
+
+body::before {
+    display: none;
+}
+
+/* === PANELS - Material elevation system === */
+.board-container,
+.cage-container,
+.modal-content {
+    background: #1e1e1e;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.board-container::before,
+.board-container::after,
+.cage-container::before,
+.cage-container::after {
+    display: none;
+}
+
+.players-dock {
+    background: #1e1e1e;
+    border: none;
+    border-top: none;
+    box-shadow: 
+        0 -1px 3px rgba(0, 0, 0, 0.12),
+        0 -1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* === BINGO CELLS === */
+.bingo-cell {
+    background: #2c2c2c;
+    border: none;
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.60);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    box-shadow: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bingo-cell:hover {
+    background: #383838;
+    color: #03dac6;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.bingo-cell.drawn {
+    background: #03dac6;
+    color: #121212;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 5px rgba(3, 218, 198, 0.2),
+        0 1px 18px rgba(3, 218, 198, 0.12);
+    border: none;
+}
+
+/* === DRUM - Elevated glass === */
+.drum {
+    background: 
+        radial-gradient(ellipse 50% 30% at 30% 25%, rgba(255,255,255,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #2c2c2c 0%, #1e1e1e 60%, #121212 100%);
+    border: none;
+    box-shadow: 
+        inset 0 0 40px rgba(0,0,0,0.3),
+        0 8px 30px rgba(0, 0, 0, 0.4),
+        0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.drum::before {
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, transparent 60%);
+}
+
+.drum::after {
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+}
+
+/* === CURRENT BALL === */
+.ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #4a4a4a 0%, #3a3a3a 20%, #2c2c2c 50%, #1e1e1e 100%);
+    border: none;
+    box-shadow: 
+        inset -8px -8px 20px rgba(0,0,0,0.4),
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.87);
+}
+
+.ball::after {
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 50%);
+}
+
+/* === HISTORY BALLS === */
+.history-ball {
+    background: 
+        radial-gradient(circle at 30% 30%, #3a3a3a 0%, #2c2c2c 60%, #1e1e1e 100%);
+    border: none;
+    box-shadow: 
+        inset -2px -2px 6px rgba(0,0,0,0.3),
+        0 2px 6px rgba(0,0,0,0.3);
+    color: rgba(255, 255, 255, 0.87);
+}
+
+.history-ball:first-child {
+    background: radial-gradient(circle at 30% 30%, #4cd9cc 0%, #03dac6 60%, #02a899 100%);
+    color: #121212;
+    box-shadow: 
+        0 3px 12px rgba(3, 218, 198, 0.3),
+        inset -3px -3px 8px rgba(0,0,0,0.2);
+}
+
+/* === BUTTONS === */
+.btn-primary {
+    background: #03dac6;
+    border: none;
+    color: #121212;
+    font-weight: 600;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    background: #4cd9cc;
+    box-shadow: 
+        0 4px 8px rgba(3, 218, 198, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: none;
+}
+
+.btn-icon {
+    background: #2c2c2c;
+    border: none;
+    color: rgba(255, 255, 255, 0.60);
+    border-radius: 12px;
+}
+
+.btn-icon:hover {
+    background: #383838;
+    color: #03dac6;
+}
+
+/* === HEADERS === */
+h2, .section-header h2 {
+    color: rgba(255, 255, 255, 0.87);
+    font-family: var(--font-heading);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+
+.section-header {
+    border-bottom: 1px solid #2c2c2c;
+}
+
+/* === PLAYER CARDS === */
+.player-card {
+    background: #2c2c2c;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.player-card:hover {
+    background: #383838;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    border-color: transparent;
+}
+
+.player-card.winner {
+    box-shadow: 0 0 0 2px #03dac6;
+}
+
+.mini-cell {
+    background: #383838;
+    border-radius: 4px;
+}
+
+.mini-cell.marked {
+    background: #03dac6;
+    color: #121212;
     box-shadow: none;
 }
 
-body {
-    background-image: none;
+/* === MODAL === */
+.modal-content {
+    border-radius: 28px;
+    box-shadow: 
+        0 11px 15px rgba(0, 0, 0, 0.2),
+        0 9px 46px rgba(0, 0, 0, 0.12),
+        0 24px 38px rgba(0, 0, 0, 0.14);
+}
+
+.modal-header {
+    background: #1e1e1e;
+    border-bottom: none;
+    border-radius: 28px 28px 0 0;
+}
+
+.modal-title {
+    color: rgba(255, 255, 255, 0.87);
+    font-family: var(--font-ui);
+    font-weight: 500;
+}
+
+.group-title {
+    color: #bb86fc;
+    border-bottom: none;
+    font-weight: 500;
+    text-transform: none;
+    font-size: 0.875rem;
+}
+
+.modal-footer {
+    background: #1e1e1e;
+    border-top: none;
+    border-radius: 0 0 28px 28px;
+}
+
+/* === FORM ELEMENTS === */
+.form-input {
+    background: #2c2c2c;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.38);
+    border-radius: 4px 4px 0 0;
+    color: rgba(255, 255, 255, 0.87);
+}
+
+.form-input:focus {
+    border-bottom-color: #03dac6;
+    box-shadow: none;
+}
+
+/* === SLIDERS === */
+input[type="range"] {
+    accent-color: #03dac6;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.38);
+    border-radius: 14px;
+}
+
+.slider::before {
+    border-radius: 10px;
+}
+
+input:checked + .slider {
+    background-color: rgba(3, 218, 198, 0.5);
+}
+
+input:checked + .slider::before {
+    background-color: #03dac6;
+}
+
+/* === THEME THUMBNAIL === */
+.theme-thumbnail {
+    border: 2px solid #2c2c2c;
+    border-radius: 16px;
+}
+
+.theme-thumbnail.active {
+    border-color: #03dac6;
+    box-shadow: none;
+}
+
+/* === CELEBRATION === */
+.celebration-overlay {
+    background: rgba(18, 18, 18, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.celebration-title {
+    color: #03dac6;
+    -webkit-text-stroke: 0;
+    text-shadow: 0 0 40px rgba(3, 218, 198, 0.4);
+}
+
+.celebration-details {
+    color: rgba(255, 255, 255, 0.87);
+}
+
+/* === HISTORY TRACK === */
+.history-track {
+    background: #2c2c2c;
+    border: none;
+    border-radius: 16px;
+}
+
+/* === CONFIRM MODAL === */
+.confirm-content {
+    border-radius: 28px;
+    background: #2c2c2c;
+}
+
+.btn-confirm-yes {
+    background: #03dac6;
+    color: #121212;
+    border-radius: 20px;
+}
+
+.btn-confirm-no {
+    background: transparent;
+    color: #03dac6;
+    border: none;
+    border-radius: 20px;
+}
+
+/* === SCROLLBAR - Android style === */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }

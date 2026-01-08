@@ -17,6 +17,16 @@
     --color-drawn: #ffffff;
     --bg-drawn: var(--color-accent);
     
+    /* DEFAULT BALL COLORS - Overridden by themes */
+    --ball-color-1: #ff3c00;
+    --ball-color-2: #00f0ff;
+    --ball-color-3: #ff6b6b;
+    --ball-color-4: #4ecdc4;
+    --ball-color-5: #ffe66d;
+    --ball-color-6: #95e1d3;
+    --ball-color-7: #f38181;
+    --ball-color-8: #aa96da;
+    
     /* SPACING */
     --gap-layout: 1rem;
     --gap-grid: 0.25rem;
