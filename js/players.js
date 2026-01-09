@@ -45,8 +45,8 @@ export class PlayerManager extends EventTarget {
                 hits: new Set(), // Números marcados en este cartón
                 
                 // Estados de victoria local para evitar eventos duplicados
-                hasLine: false,
-                hasBingo: false
+                hasBingo: false,
+                completedRows: new Set() // Indices de filas completadas
             };
 
             newCards.push(cardObj);
@@ -114,36 +114,72 @@ export class PlayerManager extends EventTarget {
             // Verificar condiciones de victoria usando la lógica de BingoEngine
             // Pasamos this.drawnNumbersArray explícitamente
             
-            // 1. Verificar Línea (si no la tiene ya)
-            if (!card.hasLine) {
-                const isLine = this.engineValidator.checkLine(card.cleanRows, this.drawnNumbersArray);
-                if (isLine) {
-                    card.hasLine = true;
-                    player.stats.lines++;
-                    this.dispatchEvent(new CustomEvent('player:line', {
-                        detail: { player, card, number }
-                    }));
-                }
-            }
-
-            // 2. Verificar Bingo (si no lo tiene ya)
+            // PRIORITY: BINGO FIRST
+            let isBingo = false;
             if (!card.hasBingo) {
                 // checkBingo puede trabajar con cleanRows (array de arrays) o números planos
-                // Usamos cleanRows por consistencia
-                const isBingo = this.engineValidator.checkBingo(card.cleanRows, this.drawnNumbersArray);
+                isBingo = this.engineValidator.checkBingo(card.cleanRows, this.drawnNumbersArray);
                 if (isBingo) {
                     card.hasBingo = true;
+                    // Mark all rows as completed internally to avoid late line triggers
+                    // though usually game pauses on Bingo.
+                    card.cleanRows.forEach((_, idx) => card.completedRows.add(idx));
+                    
                     player.stats.bingos++;
                     this.dispatchEvent(new CustomEvent('player:bingo', {
                         detail: { player, card, number }
                     }));
                 }
             }
+
+            // CHECK LINE ONLY IF NOT BINGO
+            if (!isBingo) {
+                // Check each row individually to support multiple lines
+                card.cleanRows.forEach((row, rowIndex) => {
+                    // Ensure completedRows exists (backward compatibility/safety)
+                    if (!card.completedRows) card.completedRows = new Set();
+                    
+                    // Skip if already won this row
+                    if (card.completedRows.has(rowIndex)) return;
+                    
+                    // Check if this specific row is fully drawn
+                    const rowComplete = row.every(num => this.drawnNumbers.has(num));
+                    
+                    if (rowComplete) {
+                        card.completedRows.add(rowIndex);
+                        player.stats.lines++;
+                        this.dispatchEvent(new CustomEvent('player:line', {
+                            detail: { player, card, number, rowIndex }
+                        }));
+                    }
+                });
+            }
             
             // Actualizar "cercanía" para el sort (heurística simple)
             // Score = (Hits / TotalNumbers)
             // O mejor: Cuadros marcados.
             player.score = this._calculateScore(player);
+        });
+        
+        // UPDATE DISPLAY CARD FOR UI
+        affectedPlayers.forEach(p => {
+             // Find cards that contain currentNumber
+            const hitCards = p.cards.filter(c => c.hits.has(number));
+            let candidateCard;
+            
+            if (hitCards.length > 0) {
+                // Pick best among hit cards
+                candidateCard = hitCards.reduce((prev, current) => 
+                    (prev.hits.size > current.hits.size) ? prev : current
+                );
+            } else {
+                // Fallback: Pick best among ALL cards
+                candidateCard = p.cards.reduce((prev, current) => 
+                    (prev.hits.size > current.hits.size) ? prev : current
+                );
+            }
+            
+            p.displayCardIndex = p.cards.indexOf(candidateCard);
         });
         
         // Desactivar recentHit de los NO afectados?
@@ -186,6 +222,15 @@ export class PlayerManager extends EventTarget {
     }
 
     /**
+     * Sincroniza el Set de números sorteados con un array externo.
+     * Esencial al cargar estado guardado para que las comprobaciones O(1) funcionen.
+     */
+    syncDrawnNumbers(numbers) {
+        this.drawnNumbers = new Set(numbers);
+        this.drawnNumbersArray = [...numbers];
+    }
+
+    /**
      * Resetea el estado de todos los jugadores y del juego.
      * (Manteniendo los jugadores, pero limpiando sus cartones)
      */
@@ -198,8 +243,9 @@ export class PlayerManager extends EventTarget {
             p.lastHitTurn = -1;
             p.cards.forEach(c => {
                 c.hits.clear();
-                c.hasLine = false;
                 c.hasBingo = false;
+                if (c.completedRows) c.completedRows.clear();
+                else c.completedRows = new Set();
             });
         });
     }
@@ -268,7 +314,8 @@ export class PlayerManager extends EventTarget {
             ...p,
             cards: p.cards.map(c => ({
                 ...c,
-                hits: Array.from(c.hits)
+                hits: Array.from(c.hits),
+                completedRows: c.completedRows ? Array.from(c.completedRows) : []
             }))
         }));
     }
@@ -283,7 +330,10 @@ export class PlayerManager extends EventTarget {
             ...p,
             cards: p.cards.map(c => ({
                 ...c,
-                hits: new Set(c.hits)
+                hits: new Set(c.hits),
+                // Ensure new properties exist when restoring old state
+                completedRows: c.completedRows ? new Set(c.completedRows) : new Set(),
+                hasBingo: c.hasBingo || false
             }))
         }));
 

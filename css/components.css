@@ -48,6 +48,78 @@
     background: var(--color-accent);
 }
 
+/* --- 3D DRUM CAGE "ULTRATHINK" --- */
+.drum-stage {
+    perspective: 1200px;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.drum-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    /* Rotation controlled by JS */
+}
+
+/* The structural cage lines */
+.cage-rib, .cage-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 0 15px var(--color-accent);
+    border-radius: 50%;
+    opacity: 0.8;
+    pointer-events: none;
+    backface-visibility: visible;
+}
+
+/* Vertical Ribs (Meridians) */
+.cage-rib {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    /* transforms applied in JS or via classes */
+}
+
+/* Horizontal Rings (Parallels) */
+.cage-ring {
+    box-sizing: border-box;
+}
+
+/* Glassy Surface */
+.drum-glass {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 20%, transparent 60%);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.2);
+    /* mix-blend-mode: screen; */
+    pointer-events: none;
+    transform: translateZ(0); /* Fix painting */
+}
+
+/* Canvas is inside the drum-wrapper? No, canvas should be 'inside' the cage visually.
+   If canvas is 2D, we force it to align with the camera but inside the 3D context.
+   Actually, sticking the canvas *in the middle* of the 3D cage logic is best.
+*/
+.drum canvas {
+    position: absolute;
+    top: 0; left: 0;
+    transform: translateZ(0);
+    /* Ensure it doesn't block clicks if we had controls, but here it's fine */
+}
+
 /* --- PLAYER CARD (Mini-Carton) --- */
 .player-card {
     flex: 0 0 160px; /* Compact width */

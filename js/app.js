@@ -19,6 +19,7 @@ class App {
     confirmResolve = null;
     totalLines = 0;   // Total lines across all players
     totalBingos = 0;  // Total bingos across all players
+    pendingGameEnd = null;
 
     constructor() {
         // Modules
@@ -116,6 +117,7 @@ class App {
         // --- Engine Events ---
         this.engine.addEventListener('bingo:draw', (e) => this.handleDrawEvent(e.detail));
         this.engine.addEventListener('bingo:reset', () => this.handleResetEvent());
+        this.engine.addEventListener('bingo:finished', () => this.handleGameFinished());
         
         // --- Player Events ---
         this.players.addEventListener('player:line', (e) => this.handleWin('LINE', e.detail));
@@ -398,6 +400,15 @@ class App {
         // Track totals
         if (type === 'LINE') {
             this.totalLines++;
+            
+            // Si ya hemos superado el máximo de líneas, no celebramos (opcional, pero buena UX)
+            // Si maxLines es 0 (infinito), siempre celebramos.
+            if (this.settings.maxLines > 0 && this.totalLines > this.settings.maxLines) {
+                 // Silent limit or show toast instead of overlay?
+                 // User request focus is on "Game End". 
+                 // Let's assume we still announce logically but maybe just shorter?
+                 // For now, standard behavior.
+            }
         } else if (type === 'BINGO') {
             this.totalBingos++;
         }
@@ -428,31 +439,54 @@ class App {
      * Check if game should end due to limits being reached
      */
     checkLimits() {
-        const maxLines = this.settings.maxLines;
         const maxBingos = this.settings.maxBingos;
+        // User requested removing LINE limit as Game Ender.
+        // Game ends ONLY on Bingos limit, All Cards Full, or No Balls.
 
         let shouldEnd = false;
         let endReason = '';
 
-        // Check bingo limit first (higher priority)
+        // 1. Check bingo limit
         if (maxBingos > 0 && this.totalBingos >= maxBingos) {
             shouldEnd = true;
             endReason = `¡Se alcanzó el límite de ${maxBingos} bingo${maxBingos > 1 ? 's' : ''}!`;
         }
-        // Check line limit
-        else if (maxLines > 0 && this.totalLines >= maxLines) {
-            shouldEnd = true;
-            endReason = `¡Se alcanzó el límite de ${maxLines} línea${maxLines > 1 ? 's' : ''}!`;
+        
+        // 2. Check All Cards Completed
+        // Are there players? And are ALL cards of ALL players finished?
+        if (!shouldEnd && this.players.players.length > 0) {
+            const allCompleted = this.players.players.every(p => 
+                p.cards.every(c => c.hasBingo)
+            );
+            if (allCompleted) {
+                shouldEnd = true;
+                endReason = '¡Todos los cartones han sido completados!';
+            }
         }
 
         if (shouldEnd) {
             // End the game
+            // Store reason temporarily if needed, 
+            // but engine.finishGame() doesn't pass params in our simple event system.
+            // We can dispatch or UI show directly.
             this.engine.finishGame();
-            
+            this.endReasonCache = endReason; // Hacky pass to event handler
+        }
+    }
+
+    handleGameFinished() {
+        const reason = this.endReasonCache || (this.engine.availableNumbers.length === 0 ? '¡No quedan más bolas!' : '');
+        this.endReasonCache = null;
+
+        const isOverlayVisible = this.ui.overlay && !this.ui.overlay.classList.contains('hidden');
+
+        if (isOverlayVisible) {
+            this.pendingGameEnd = { title: '🎉 FIN DEL JUEGO', message: reason };
+        } else {
             // Show end game message after a short delay
             setTimeout(() => {
-                this.showOverlay('🎉 FIN DEL JUEGO', endReason);
-            }, 2000);
+                this.showOverlay('🎉 FIN DEL JUEGO', reason);
+            }, 1000);
         }
     }
 
@@ -464,7 +498,36 @@ class App {
             this.ui.overlay.classList.remove('hidden');
             this.ui.overlay.classList.add('visible');
             this.ui.overlay.setAttribute('aria-hidden', 'false');
+
+            // Trigger confetti
+            this.ui.triggerConfetti();
         }
+    }
+
+    /**
+     * DEBUG ONLY: Rig the game for a specific player to win soon.
+     * @param {string} playerId 
+     */
+    rigGameForPlayer(playerId) {
+        const player = this.players.players.find(p => p.id === playerId);
+        if (!player) {
+            console.error('Player not found');
+            return;
+        }
+
+        // Get needed numbers from first card
+        const card = player.cards[0];
+        if (!card) return;
+
+        // Find numbers in card NOT in drawnNumbers
+        const needed = card.numbers.filter(n => !this.engine.drawnNumbers.includes(n));
+        
+        console.log(`Rigging game for ${player.name}. Enqueueing ${needed.length} numbers.`);
+        
+        // Push to engine priority queue
+        this.engine.riggedQueue = [...needed];
+        
+        this.ui.showToast('JUEGO TRUCADO 😈', 'system');
     }
 
     closeOverlay() {
@@ -472,6 +535,14 @@ class App {
             this.ui.overlay.classList.remove('visible');
             this.ui.overlay.classList.add('hidden');
             this.ui.overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        if (this.pendingGameEnd) {
+            const { title, message } = this.pendingGameEnd;
+            this.pendingGameEnd = null;
+            setTimeout(() => {
+                this.showOverlay(title, message);
+            }, 500); // Small delay for better UX
         }
     }
 
@@ -520,6 +591,9 @@ class App {
         
         // Reset animation state
         this.isAnimating = false;
+
+        // Force save of the reset state (Clean players, clean game)
+        this.saveState();
     }
 
     /**
@@ -579,6 +653,11 @@ class App {
             this.engine.drawnNumbers = savedGame.drawnNumbers || [];
             this.engine.availableNumbers = savedGame.availableNumbers || [];
             
+            // Sync Players Drawn Set (Visual fix for late joins/reloads)
+            if (this.players) {
+                this.players.syncDrawnNumbers(this.engine.drawnNumbers);
+            }
+
             // Restore Internal Sets if needed or engine is simple array based
             // BingoEngine keeps state in Arrays, so direct assignment is mostly fine 
             // BUT we should verify currentNumber

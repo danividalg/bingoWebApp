@@ -40,14 +40,19 @@ class PhysicsEngine {
 
     addBalls(count) {
         this.balls = [];
+        // Spawn distributed to minimize initial overlap
+        const spread = this.sphereRadius * 0.7; // Use 70% of available radius
+        
         for (let i = 0; i < count; i++) {
+            // Rejection sampling for spherical distribution could be better,
+            // but simple box spread is fine if large enough.
             this.balls.push({
                 id: i,
                 r: 8, 
                 pos: new Vector3(
-                    (Math.random() - 0.5) * 50,
-                    (Math.random() - 0.5) * 50,
-                    (Math.random() - 0.5) * 50
+                    (Math.random() - 0.5) * spread,
+                    (Math.random() - 0.5) * spread,
+                    (Math.random() - 0.5) * spread
                 ),
                 vel: new Vector3(
                     (Math.random() - 0.5) * 10,
@@ -87,85 +92,119 @@ class PhysicsEngine {
     update() {
         if (!this.isRunning) return;
 
+        // SUB-STEPPING for stability and realism
+        // More steps = less overlapping, stiffer collisions
+        const STEPS = 8; 
+        const dt = 1 / STEPS;
+
+        for (let s = 0; s < STEPS; s++) {
+            this.step(dt);
+        }
+    }
+
+    step(dt) {
         // Update Drum Rotation
-        this.drumRotation += this.drumSpeed;
+        this.drumRotation += this.drumSpeed * dt;
         
-        // Tangential force vector from rotation (simplified)
-
-
+        // 1. Forces & Integration
         this.balls.forEach(ball => {
             // Gravity
-            ball.vel = ball.vel.add(this.gravity);
+            ball.vel = ball.vel.add(this.gravity.mult(dt));
             
-            // Random Agitation (Air jets)
-            if (Math.random() < 0.02) {
+            // Random Agitation (Air jets) - scaled by time/probability
+            if (Math.random() < 0.005) {
                 ball.vel = ball.vel.add(new Vector3(
-                    (Math.random()-0.5)*5, 
-                    -(Math.random()*8), 
-                    (Math.random()-0.5)*5
+                    (Math.random()-0.5)*8, 
+                    -(Math.random()*12), // Stronger pops 
+                    (Math.random()-0.5)*8
                 ));
             }
 
-            // Move
-            ball.pos = ball.pos.add(ball.vel);
+            // Integrate Velocity
+            ball.pos = ball.pos.add(ball.vel.mult(dt));
 
-            // Constraint: Sphere Boundary
-            const dist = ball.pos.length();
-            if (dist + ball.r > this.sphereRadius) {
-                // Collision Normal (pointing outward)
-                const n = ball.pos.normalize();
-                
-                // Reflect velocity
-                const vDotN = ball.vel.dot(n);
-                // v_reflect = v - 2(v.n)n
-                // Only reflect if moving outwards
-                if (vDotN > 0) {
-                    let reflected = ball.vel.sub(n.mult(2 * vDotN));
-                    
-                    // Add Wall Friction/Spin
-                    // Force = Cross product of axis and position gives tangential direction
-                    // But simplified: Add velocity in direction of drum rotation (X/Y plane rotation)
-                    // If drum rotates Z, tangent is (-y, x, 0)
-                    const tangent = new Vector3(-ball.pos.y, ball.pos.x, 0).normalize();
-                    const wallSpeed = tangent.mult(this.drumSpeed * dist * 0.1);
-
-                    ball.vel = reflected.mult(this.wallBounciness).add(wallSpeed);
-                }
-                
-                // Push back inside
-                ball.pos = n.mult(this.sphereRadius - ball.r - 0.1);
-            }
+            // Sphere Wall Constraints
+            this.handleWallCollision(ball, dt);
         });
 
-        // Simple Ball-Ball Collision (O(N^2) scales fine for < 20 balls)
+        // 2. Resolve Ball-Ball Collisions
+        this.resolveCollisions();
+    }
+
+    handleWallCollision(ball, dt) {
+        const dist = ball.pos.length();
+        if (dist + ball.r > this.sphereRadius) {
+            const n = ball.pos.normalize();
+            
+            // Positional Correction (push back inside immediately to prevent leaking)
+            const penetration = (dist + ball.r) - this.sphereRadius;
+            ball.pos = ball.pos.sub(n.mult(penetration));
+
+            // Velocity Reflection
+            const vDotN = ball.vel.dot(n);
+            if (vDotN > 0) {
+                // Friction / Spin influence from drum wall
+                // Tangent direction (-y, x, 0) for Z-rotation
+                const tangent = new Vector3(-ball.pos.y, ball.pos.x, 0).normalize();
+                
+                // Wall surface velocity at this point
+                const surfaceSpeed = this.drumSpeed * this.sphereRadius * 0.5; // tuned
+                const wallVel = tangent.mult(surfaceSpeed);
+                
+                // Relative velocity at contact
+                // We simplify: blend ball velocity towards wall velocity significantly to simulate friction dragging
+                // Standard Reflection
+                let reflected = ball.vel.sub(n.mult(2 * vDotN));
+                
+                // Blend with wall movement (Friction)
+                // The balls should "tumble" with the drum
+                ball.vel = reflected.mult(this.wallBounciness).add(wallVel.mult(0.1));
+            }
+        }
+    }
+
+    resolveCollisions() {
+        // Simple O(N^2) solver
+        // Using impulse resolution + positional correction (separation)
+        
+        const restitution = 0.85; // Energy loss on collision
+
         for (let i = 0; i < this.balls.length; i++) {
             for (let j = i + 1; j < this.balls.length; j++) {
                 const b1 = this.balls[i];
                 const b2 = this.balls[j];
+                
+                // Check distance squared to avoid sqrt if not needed? 
+                // We need actual distance for separation.
                 const diff = b1.pos.sub(b2.pos);
-                let dist = diff.length();
+                const distSq = diff.dot(diff);
                 const minDist = b1.r + b2.r;
                 
-                if (dist < minDist && dist > 0) {
-                    const n = diff.normalize();
-                    const push = n.mult((minDist - dist) * 0.5);
+                if (distSq < minDist * minDist && distSq > 0.0001) {
+                    const dist = Math.sqrt(distSq);
+                    const n = diff.mult(1 / dist); // Normalized
                     
-                    // Separate
-                    b1.pos = b1.pos.add(push);
-                    b2.pos = b2.pos.sub(push);
+                    // 1. Positional Separation (Prevent overlap)
+                    // Push each apart by half the overlap
+                    const overlap = minDist - dist;
+                    const separation = n.mult(overlap * 0.5);
                     
-                    // Exchange momentum (Elastic)
-                    // v1' = v1 - dot(v1-v2, n) * n
-                    // v2' = v2 - dot(v2-v1, n) * n
-                    const v1 = b1.vel;
-                    const v2 = b2.vel;
+                    b1.pos = b1.pos.add(separation);
+                    b2.pos = b2.pos.sub(separation);
                     
-                    const vRel = v1.sub(v2);
-                    const impulse = vRel.dot(n);
+                    // 2. Velocity Impulse
+                    const vRel = b1.vel.sub(b2.vel);
+                    const velAlongNormal = vRel.dot(n);
                     
-                    if (impulse < 0) { // Only collide if moving towards each other
-                        b1.vel = b1.vel.sub(n.mult(impulse));
-                        b2.vel = b2.vel.add(n.mult(impulse));
+                    // Only resolve if moving towards each other
+                    if (velAlongNormal < 0) {
+                        // J = -(1+e) * v_rel_norm / (1/m1 + 1/m2)
+                        // Assuming mass = 1 for all
+                        const j = -(1 + restitution) * velAlongNormal / 2;
+                        
+                        const impulse = n.mult(j);
+                        b1.vel = b1.vel.add(impulse);
+                        b2.vel = b2.vel.sub(impulse);
                     }
                 }
             }

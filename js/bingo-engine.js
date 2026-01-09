@@ -14,6 +14,9 @@ export class BingoEngine extends EventTarget {
     this.drawnNumbers = [];
     this.currentNumber = null;
     
+    // Test helper
+    this.riggedQueue = [];
+
     // Initialize state
     this.reset();
   }
@@ -27,6 +30,7 @@ export class BingoEngine extends EventTarget {
     this.availableNumbers = Array.from({ length: 90 }, (_, i) => i + 1);
     this.drawnNumbers = [];
     this.currentNumber = null;
+    this.riggedQueue = [];
     this.gameState = 'idle';
 
     this.dispatchEvent(new CustomEvent('bingo:reset', {
@@ -73,9 +77,22 @@ export class BingoEngine extends EventTarget {
       return null;
     }
 
-    // Random selection
-    const randomIndex = Math.floor(Math.random() * this.availableNumbers.length);
-    const drawn = this.availableNumbers.splice(randomIndex, 1)[0];
+    // Random selection or Rigged
+    let randomIndex;
+    let drawn;
+
+    if (this.riggedQueue.length > 0) {
+        const nextRigged = this.riggedQueue.shift();
+        randomIndex = this.availableNumbers.indexOf(nextRigged);
+        if (randomIndex === -1) {
+            // Number already drawn or invalid, fallback to random
+            randomIndex = Math.floor(Math.random() * this.availableNumbers.length);
+        }
+    } else {
+        randomIndex = Math.floor(Math.random() * this.availableNumbers.length);
+    }
+
+    drawn = this.availableNumbers.splice(randomIndex, 1)[0];
 
     // Update state
     this.drawnNumbers.push(drawn);

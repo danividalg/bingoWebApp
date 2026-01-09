@@ -85,31 +85,32 @@ export class AudioManager {
 
         const t = this.ctx.currentTime;
         
-        // 1. Body (The hollow thud of plastic)
+        // 1. Body (The hollow thud of plastic) - Improved
         const osc1 = this.ctx.createOscillator();
         const gain1 = this.ctx.createGain();
-        osc1.type = 'triangle';
-        osc1.frequency.setValueAtTime(400, t);
-        osc1.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+        osc1.type = 'sine'; // Sine is rounder for the body
+        osc1.frequency.setValueAtTime(300, t);
+        osc1.frequency.exponentialRampToValueAtTime(60, t + 0.15);
         gain1.gain.setValueAtTime(0, t);
-        gain1.gain.linearRampToValueAtTime(0.5, t + 0.005); // Attack
-        gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.15); // Decay
+        gain1.gain.linearRampToValueAtTime(0.8, t + 0.005);
+        gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
         osc1.connect(gain1);
         gain1.connect(this.masterGain);
-        osc1.start(t);
-        osc1.stop(t + 0.2);
 
         // 2. Click (The hard surface contact)
         const osc2 = this.ctx.createOscillator();
         const gain2 = this.ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(2500, t);
-        osc2.frequency.exponentialRampToValueAtTime(1000, t + 0.05);
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(2000, t);
+        osc2.frequency.exponentialRampToValueAtTime(500, t + 0.05);
         gain2.gain.setValueAtTime(0, t);
-        gain2.gain.linearRampToValueAtTime(0.3, t + 0.005);
-        gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        gain2.gain.linearRampToValueAtTime(0.15, t + 0.002);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
         osc2.connect(gain2);
         gain2.connect(this.masterGain);
+
+        osc1.start(t);
+        osc1.stop(t + 0.25);
         osc2.start(t);
         osc2.stop(t + 0.1);
     }
@@ -154,31 +155,75 @@ export class AudioManager {
         if (!this.initialized || this.isMuted) return;
         const now = this.ctx.currentTime;
         
-        // Frequencies for C Major 7 chord (C, E, G, B)
-        const chord = type === 'BINGO' 
-            ? [523.25, 659.25, 783.99, 987.77, 1046.5] 
-            : [659.25, 783.99]; // Simpler for Line
+        // Settings based on type
+        const isBingo = type === 'BINGO';
+        const baseVol = 0.3; // Base volume for victory sounds
 
-        chord.forEach((freq, i) => {
+        // 1. Fanfare / Melody
+        // Major arpeggio for Line, Grand fanfare for Bingo
+        const notes = isBingo 
+            ? [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.51, 1567.98] // C4, E4, G4, C5, G4, C5, E5, G5
+            : [659.25, 783.99, 987.77, 1046.5]; // E4, G4, B4, C5
+
+        const noteDuration = isBingo ? 0.12 : 0.15;
+
+        notes.forEach((freq, i) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             
-            // Triangle wave for a slightly 8-bit/game-like pleasant tone
-            osc.type = 'triangle';
+            // Mix types for richer sound
+            osc.type = i % 2 === 0 ? 'triangle' : 'sine';
             osc.frequency.value = freq;
             
-            const time = now + (i * 0.08); // Arpeggiated
+            const time = now + (i * noteDuration);
             
             gain.gain.setValueAtTime(0, time);
-            gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.6);
+            gain.gain.linearRampToValueAtTime(baseVol, time + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
 
             osc.connect(gain);
             gain.connect(this.masterGain);
 
             osc.start(time);
-            osc.stop(time + 0.6);
+            osc.stop(time + 0.5);
         });
+
+        // 2. Fireworks / Applause (Synthetic Noise)
+        // More intense for Bingo
+        const duration = isBingo ? 4 : 1.5;
+        const particleCount = isBingo ? 15 : 5;
+
+        for (let i = 0; i < particleCount; i++) {
+            const timeOffset = Math.random() * duration;
+            this.playExplosion(now + timeOffset, isBingo ? 1 : 0.5);
+        }
+    }
+
+    playExplosion(startTime, intensity = 1) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        // White noise approximate via random frequency modulation
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, startTime);
+        osc.frequency.exponentialRampToValueAtTime(1, startTime + 0.5); // Pitch drop for "boom"
+
+        // Filter to muffle it into an explosion
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1000, startTime);
+        filter.frequency.linearRampToValueAtTime(100, startTime + 0.5);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.3 * intensity, startTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.6);
     }
 
     /**
@@ -189,12 +234,37 @@ export class AudioManager {
         
         this.synth.cancel(); // Interrupt previous speech
 
-        // Basic nickname logic (optional but adds zest)
+        // Special nicknames map
+        const specialNames = {
+            1: "El pequeñito",
+            2: "El patito",
+            11: "Las banderillas",
+            13: "La mala suerte",
+            15: "La niña bonita",
+            22: "Los dos patitos",
+            33: "La edad de Cristo",
+            44: "Las sillitas",
+            48: "El de los pollos",
+            55: "Los dos cincos",
+            69: "La vuelta al mundo",
+            77: "Las dos muletas",
+            88: "Las dos calabazas",
+            90: "El abuelo"
+        };
+        
         let text;
-        if (number === 15) {
-            text = "La niña bonita, 15";
-        } else if (number === 22) {
-             text = "Los dos patitos, 22";
+        
+        if (specialNames[number]) {
+            // "Number, Nickname"
+            text = `${number}, ${specialNames[number]}`;
+        } else if (number >= 70 && number <= 79) {
+            // The 70s special rule: "Setenta y cuatro" -> "74: Siete Cuatro"
+            // Except 77 which is handled above by specialNames check
+            const digitNames = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+            const digits = number.toString().split('').map(d => Number.parseInt(d, 10));
+            
+            // "74, siete cuatro"
+            text = `${number}, siete ${digitNames[digits[1]]}`;
         } else {
              text = `${number}`;
         }
