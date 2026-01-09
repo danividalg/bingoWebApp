@@ -68,18 +68,18 @@ Bingo/
 
 ---
 
-## **FASE 3: Bombo 3D y Animaciones**
+## **FASE 3: Bombo 3D y Física Avanzada**
 
 | # | Tarea | Detalles |
 |---|-------|----------|
-| 3.1 | Estructura HTML del bombo | `.drum-scene` (perspectiva) > `.drum` (cilindro) > `.drum-face` × N + `.drum-balls` (bolas internas). |
-| 3.2 | Modelar cilindro CSS 3D en `css/animations.css` | 12 caras con `rotateY(30deg * i)`, `translateZ()` para radio. `transform-style: preserve-3d`. |
-| 3.3 | Bolas decorativas flotantes | 15-20 mini-esferas con colores variados, `animation: float` con delays aleatorios. |
-| 3.4 | Animación rotación bombo | `@keyframes drum-spin`: rotación Y continua. Velocidad variable (acelera al extraer). |
-| 3.5 | Animación extracción de bola en `js/drum.js` | Secuencia: bola aparece pequeña → sale por ranura → gira (rotateY 720deg) → escala a tamaño grande → muestra número. |
-| 3.6 | Zona número extraído | `.extracted-ball`: posición central derecha, tamaño grande, número con tipografía Dela Gothic One. |
-| 3.7 | Botón jugar/pausar | `.play-button` con estados y textos: "▶ JUGAR", "⏸ PAUSAR", "▶ CONTINUAR". |
-| 3.8 | Historial últimos números | Strip horizontal bajo el bombo con los últimos 5-8 números (bolas pequeñas). |
+| 3.1 | Escena Canvas 3D | Renderizado de alta fidelidad mediante `<canvas>` con simulación de profundidad y perspectiva. |
+| 3.2 | Motor de Física (PhysicsEngine) | Implementación de `Vector3` para posición, velocidad y aceleración. Gravedad y fricción realistas. |
+| 3.3 | Simulación de Bolas | 15-20 bolas físicas con detección de colisiones contra las paredes de la esfera y rebote elástico. |
+| 3.4 | Rotación Multi-eje | Bombo con rotación sobre eje arbitrario (Fórmula de Rodrigues) para un movimiento de "tumbado" dinámico. |
+| 3.5 | Secuencia de Extracción Cinemática | Bola seleccionada viaja al centro -> Escalado -> Giro 720° -> Reveal con iluminación dinámica. |
+| 3.6 | Zona número extraído | Superposición UI con tipografía Dela Gothic One y efectos de brillo según el tema activo. |
+| 3.7 | Botón jugar/pausar | Estado reactivo: "JUGAR", "PAUSAR", "CONTINUAR" con iconos dinámicos. |
+| 3.8 | Historial últimos números | Lista horizontal de bolas 3D estáticas mostrando la secuencia de salida reciente. |
 
 ---
 
@@ -100,18 +100,18 @@ Bingo/
 
 ---
 
-## **FASE 5: Sistema de Temas**
+## **FASE 5: Sistema de Temas (Aesthetics)**
 
 | # | Tarea | Detalles |
 |---|-------|----------|
-| 5.1 | Definir variables CSS completas | `--bg-primary`, `--bg-secondary`, `--bg-tertiary`, `--text-primary`, `--text-secondary`, `--accent`, `--accent-alt`, `--ball-gradient-start`, `--ball-gradient-end`, `--ball-shadow`, `--drum-color`, `--border-radius`, `--font-display`. |
-| 5.2 | Tema Claro `css/themes/light.css` | Fondo crema (#FAF8F5), acentos dorado/azul marino, sombras suaves, aspecto elegante. |
-| 5.3 | Tema Oscuro `css/themes/dark.css` | Fondo #0D0D0D, acentos cyan (#00FFD1) y magenta (#FF00AA), alto contraste, glow effects. |
-| 5.4 | Tema Madera `css/themes/wood.css` | Background texture madera, colores tierra (#8B4513, #D2691E), bolas estilo clásico rojo/blanco. |
-| 5.5 | Tema Metal `css/themes/metal.css` | Gradientes metálicos (plata/acero), reflejos, bordes biselados, aspecto industrial. |
-| 5.6 | Tema Cyberpunk `css/themes/cyberpunk.css` | Fondo negro con scan lines CSS, neones (#FF00FF, #00FFFF, #FFFF00), glitch en animaciones, tipografía monospace. |
-| 5.7 | Tema Cristal `css/themes/glass.css` | Glassmorphism: `backdrop-filter: blur()`, bordes translúcidos, colores pastel, sombras difusas. |
-| 5.8 | Transiciones suaves | `transition: background-color 0.3s, color 0.3s` en elementos principales. |
+| 5.1 | Variables CSS Unificadas | `--color-bg`, `--color-panel`, `--color-border`, `--color-accent`, `--color-secondary`, `--font-heading`, `--font-ui`. |
+| 5.2 | Tema Light (Apple) | Diseño Apple-inspired: Blanco/Gris claro, acento Azul Apple (#007aff), minimalismo extremo. |
+| 5.3 | Tema Dark (Material) | Android Material Dark: Superficies elevadas (#1e1e1e), acento Neon Rose (#ff2a6d). |
+| 5.4 | Tema Wood (Classic) | Estilo Club Profesional: Caoba (#1c1410), fieltro verde oliva (#2d5a27), detalles en bronce. |
+| 5.5 | Tema Metal (Cybernetic) | Futurista: Fondo ultra-oscuro (#0a0a12), neones Cian/Magenta, texturas de circuitos. |
+| 5.6 | Tema Steampunk (Victorian) | Industrial: Bronce (#cd7f32), cobre, texturas de cuero y metal remachado. |
+| 5.7 | Tema Glass (Crystal) | Crystalline: Fondo azul profundo, glassmorphism con desenfoque, reflejos de joya. |
+| 5.8 | Transiciones de Estado | Animaciones fluidas al cambiar entre temas mediante inyección de variables dinámicas. |
 
 ---
 
@@ -251,11 +251,11 @@ Bingo/
 
 | Estado del Juego | Modo Manual | Modo Automático |
 |------------------|-------------|-----------------|
-| `idle` | Extrae primera bola | Inicia timer, extrae primera bola |
-| `playing` | Extrae siguiente bola | Pausa timer |
-| `paused` | — | Reanuda timer |
-| `celebrating` | Cierra overlay, continúa | Cierra overlay, reanuda timer |
-| `finished` | Nada (botón deshabilitado) | Nada |
+| `idle` | Extrae la **primera bola** para comenzar. | Inicia el **temporizador** y extrae la primera bola. |
+| `playing` | Extrae la **siguiente bola**. | **Pausa** el temporizador (detiene el flujo). |
+| `paused` | Extrae la **siguiente bola** (vuelve a `playing`). | **Reanuda** el temporizador (continúa el flujo). |
+| `celebrating` | Cierra la celebración y permite extraer la siguiente. | Cierra la celebración y **reanuda el flujo** automático. |
+| `finished` | El juego ha terminado (90 bolas o límite de bingos). | — |
 
 ---
 

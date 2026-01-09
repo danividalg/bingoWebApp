@@ -59,19 +59,19 @@ Cilindro 3D modelado con 12 caras CSS, rotación continua animada, y bolas decor
 
 ### 🔊 Audio Sintético + TTS
 - **SFX generados**: Bombo girando (oscilador 40-60Hz), pop de bola (sweep 800→200Hz), fanfarrias de línea/bingo
-- **Locución española**: "¡El treinta y tres!" con voces nativas del sistema
+- **Locución española**: "¡Treinta y tres!" con voces nativas del sistema
 - **Sincronización**: Promesas que esperan fin de audio antes de continuar
 
 ### 🎨 6 Temas Visuales
 
 | Tema | Estética |
 |------|----------|
-| ☀️ **Light** | Elegante crema con acentos dorado/azul marino |
-| 🌙 **Dark** | Alto contraste con neones cyan/magenta |
-| 🪵 **Wood** | Texturas tierra, bolas clásicas rojo/blanco |
-| ⚙️ **Metal** | Gradientes metálicos, aspecto industrial |
-| � **Steampunk** | Estética Victoriana, latón, cobre y engranajes |
-| 🔮 **Glass** | Glassmorphism con blur y transparencias |
+| ☀️ **Light** | Estética Apple Design Language. Limpio, minimalista, con sombras suaves y acentos en Azul Apple (#007aff). |
+| 🌙 **Dark** | Inspirado en Android Material Dark Mode. Colores desaturados con acentos vibrantes Neon Rose (#ff2a6d). |
+| 🪵 **Wood** | Elegancia clásica de club profesional. Caoba rica, fieltro verde de billar y detalles en latón pulido (#c9a227). |
+| 💿 **Metal** | Estética Cybernetic Metal. Superficies metálicas, patrones de circuitos y neones Cian (#00f5ff) y Magenta (#ff00ff). |
+| ⚙️ **Steampunk** | Era Industrial Victoriana. Bronce, cobre, engranajes, cuero y medidores vintage con acentos en Bronce (#cd7f32). |
+| 🔮 **Glass** | Estética Crystal Chess. Cristal transparente, efectos de refracción, reflejos de diamante y desenfoque de fondo. |
 
 ### 🎫 Cartones Españoles Oficiales
 - Grid **9 columnas × 3 filas**
@@ -97,7 +97,7 @@ Cilindro 3D modelado con 12 caras CSS, rotación continua animada, y bolas decor
 
 > **TODO el código de este proyecto fue generado por Inteligencia Artificial**
 > 
-> Utilizando GitHub Copilot (Claude) siguiendo un plan maestro estructurado en 12 fases, también creado por IA.
+> Utilizando GitHub Copilot (con modelos Claude 4.5 Opus y Gemini 3 Pro) siguiendo un plan maestro estructurado en 12 fases, también creado por IA basándose en los requisitos detallados por el usuario en [Requisitos.md](Requisitos.md).
 
 ### 📋 El Plan Maestro
 
@@ -152,32 +152,32 @@ Template para invocar al front-developer con contexto aislado y estructura consi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         FLUJO DE DESARROLLO                      │
+│                         FLUJO DE DESARROLLO                     │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   👤 Usuario                                                     │
-│      │                                                           │
-│      ▼ proporciona                                               │
+│                                                                 │
+│   👤 Usuario                                                    │
+│      │                                                          │
+│      ▼ proporciona                                              │
 │   📋 Plan Maestro (.md)                                         │
-│      │                                                           │
-│      ▼ lee y desglosa                                           │
+│      │                                                          │
+│      ▼ Cambia a modo orquestador y pide que implemente el plan  │
 │   🎭 ORQUESTADOR                                                │
 │      │ crea tareas #todo                                        │
-│      │                                                           │
-│      ▼ delega                                                    │
-│   👨‍💻 FRONT-DEVELOPER                                           │
-│      │                                                           │
+│      │                                                          │
+│      ▼ delega (subAgente)                                       │
+│   👨‍💻 FRONT-DEVELOPER                                            │
+│      │                                                          │
 │      ├──▶ Implementa código                                     │
 │      ├──▶ Valida con SonarQube                                  │
 │      ├──▶ Verifica con DevTools                                 │
-│      │                                                           │
-│      ▼ reporta                                                   │
+│      │                                                          │
+│      ▼ reporta                                                  │
 │   🎭 ORQUESTADOR                                                │
-│      │ marca #done                                               │
-│      │                                                           │
+│      │ marca #done                                              │
+│      │                                                          │
 │      ▼ siguiente tarea...                                       │
 │   🔁 Repite hasta completar fase                                │
-│                                                                  │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -251,11 +251,11 @@ Bingo/
 
 | Estado | Modo Manual | Modo Automático |
 |--------|-------------|-----------------|
-| `idle` | Extrae primera bola | Inicia timer + primera bola |
-| `playing` | Extrae siguiente bola | Pausa timer |
-| `paused` | — | Reanuda timer |
-| `celebrating` | Cierra overlay | Cierra + reanuda |
-| `finished` | Deshabilitado | Deshabilitado |
+| `idle` | Extrae la **primera bola** para comenzar. | Inicia el **temporizador** y extrae la primera bola. |
+| `playing` | Extrae la **siguiente bola**. | **Pausa** el temporizador (detiene el flujo). |
+| `paused` | Extrae la **siguiente bola** (vuelve a `playing`). | **Reanuda** el temporizador (continúa el flujo). |
+| `celebrating` | Cierra la celebración y permite extraer la siguiente. | Cierra la celebración y **reanuda el flujo** automático. |
+| `finished` | El juego ha terminado (90 bolas o límite de bingos). | — |
 
 ---
 

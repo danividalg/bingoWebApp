@@ -1,4 +1,4 @@
-# Solicitud del usuario:
+# Solicitud inicial del usuario:
 Vamos a crear una web increíble, moderna y visualmente impactante para jugar al Bingo. Piensa detenidamente y paso a paso para crear el plan detallado antes de la implementación.
 
 Las características principales que se desean son:
