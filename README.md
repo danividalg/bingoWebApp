@@ -70,7 +70,7 @@ Cilindro 3D modelado con 12 caras CSS, rotación continua animada, y bolas decor
 | 🌙 **Dark** | Alto contraste con neones cyan/magenta |
 | 🪵 **Wood** | Texturas tierra, bolas clásicas rojo/blanco |
 | ⚙️ **Metal** | Gradientes metálicos, aspecto industrial |
-| 💜 **Cyberpunk** | Scanlines, glitch, neones saturados |
+| � **Steampunk** | Estética Victoriana, latón, cobre y engranajes |
 | 🔮 **Glass** | Glassmorphism con blur y transparencias |
 
 ### 🎫 Cartones Españoles Oficiales
@@ -195,12 +195,13 @@ Bingo/
 │   ├── styles.css              # Layout y estilos base + variables
 │   ├── animations.css          # Animaciones bombo/bolas 3D
 │   ├── components.css          # Modales, botones, tarjetas, jugadores
+│   ├── toast.css               # Notificaciones toast
 │   └── themes/
 │       ├── light.css           # ☀️ Tema claro elegante
 │       ├── dark.css            # 🌙 Tema oscuro neón
 │       ├── wood.css            # 🪵 Tema madera clásico
 │       ├── metal.css           # ⚙️ Tema metálico industrial
-│       ├── cyberpunk.css       # 💜 Tema cyberpunk glitch
+│       ├── steampunk.css       # 🚂 Tema steampunk victoriano
 │       └── glass.css           # 🔮 Tema glassmorphism
 │
 ├── js/
@@ -259,16 +260,22 @@ Bingo/
 ---
 
 ## 📜 Licencia
-
-MIT License
+Apache License 2.0
 
 ```
 Copyright (c) 2026
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the Licenserge, publish, distribute, sublicense, and/or sell
 copies of the Software...
 ```
 
