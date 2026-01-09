@@ -401,13 +401,11 @@ class App {
         if (type === 'LINE') {
             this.totalLines++;
             
-            // Si ya hemos superado el máximo de líneas, no celebramos (opcional, pero buena UX)
-            // Si maxLines es 0 (infinito), siempre celebramos.
+            // Fix: Respect max lines limit
+            // If we have exceeded the max lines, we do NOT announce it.
             if (this.settings.maxLines > 0 && this.totalLines > this.settings.maxLines) {
-                 // Silent limit or show toast instead of overlay?
-                 // User request focus is on "Game End". 
-                 // Let's assume we still announce logically but maybe just shorter?
-                 // For now, standard behavior.
+                 console.log(`Line win ignored. Limit (${this.settings.maxLines}) reached.`);
+                 return;
             }
         } else if (type === 'BINGO') {
             this.totalBingos++;

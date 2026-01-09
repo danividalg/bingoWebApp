@@ -35,6 +35,10 @@
     --font-heading: 'Dela Gothic One', 'Google Sans', 'Roboto', sans-serif;
     --font-ui: 'Outfit', 'Google Sans', 'Roboto', sans-serif;
     --font-mono: 'Space Mono', 'Roboto Mono', monospace;
+    
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #ff4d4d;
+    --drum-text-color: #121212;
 }
 
 /* === BODY === */
@@ -89,18 +93,18 @@ body::before {
 
 .bingo-cell:hover {
     background: #383838;
-    color: #03dac6;
+    color: #ff4d4d;
     box-shadow: none;
     border-color: transparent;
 }
 
 .bingo-cell.drawn {
-    background: #03dac6;
+    background: #ff4d4d;
     color: #121212;
     font-weight: 700;
     box-shadow: 
-        0 3px 5px rgba(3, 218, 198, 0.2),
-        0 1px 18px rgba(3, 218, 198, 0.12);
+        0 3px 5px rgba(255, 77, 77, 0.2),
+        0 1px 18px rgba(255, 77, 77, 0.12);
     border: none;
 }
 
@@ -127,13 +131,13 @@ body::before {
 /* === CURRENT BALL === */
 .ball {
     background: 
-        radial-gradient(circle at 30% 30%, #4a4a4a 0%, #3a3a3a 20%, #2c2c2c 50%, #1e1e1e 100%);
+        radial-gradient(circle at 30% 30%, #ff8080 0%, #ff4d4d 60%, #cc0000 100%);
     border: none;
     box-shadow: 
         inset -8px -8px 20px rgba(0,0,0,0.4),
         0 10px 30px rgba(0, 0, 0, 0.5),
         0 4px 12px rgba(0, 0, 0, 0.3);
-    color: rgba(255, 255, 255, 0.87);
+    color: #121212;
 }
 
 .ball::after {
@@ -152,16 +156,16 @@ body::before {
 }
 
 .history-ball:first-child {
-    background: radial-gradient(circle at 30% 30%, #4cd9cc 0%, #03dac6 60%, #02a899 100%);
+    background: radial-gradient(circle at 30% 30%, #ff8080 0%, #ff4d4d 60%, #cc0000 100%);
     color: #121212;
     box-shadow: 
-        0 3px 12px rgba(3, 218, 198, 0.3),
+        0 3px 12px rgba(255, 77, 77, 0.3),
         inset -3px -3px 8px rgba(0,0,0,0.2);
 }
 
 /* === BUTTONS === */
 .btn-primary {
-    background: #03dac6;
+    background: #ff4d4d;
     border: none;
     color: #121212;
     font-weight: 600;
@@ -173,9 +177,9 @@ body::before {
 }
 
 .btn-primary:hover {
-    background: #4cd9cc;
+    background: #ff8080;
     box-shadow: 
-        0 4px 8px rgba(3, 218, 198, 0.3),
+        0 4px 8px rgba(255, 77, 77, 0.3),
         0 2px 4px rgba(0, 0, 0, 0.2);
     transform: none;
 }
@@ -189,7 +193,7 @@ body::before {
 
 .btn-icon:hover {
     background: #383838;
-    color: #03dac6;
+    color: #ff4d4d;
 }
 
 /* === HEADERS === */
@@ -220,7 +224,7 @@ h2, .section-header h2 {
 }
 
 .player-card.winner {
-    box-shadow: 0 0 0 2px #03dac6;
+    box-shadow: 0 0 0 2px #ff4d4d;
 }
 
 .mini-cell {
@@ -229,7 +233,7 @@ h2, .section-header h2 {
 }
 
 .mini-cell.marked {
-    background: #03dac6;
+    background: #ff4d4d;
     color: #121212;
     box-shadow: none;
 }
@@ -279,13 +283,13 @@ h2, .section-header h2 {
 }
 
 .form-input:focus {
-    border-bottom-color: #03dac6;
+    border-bottom-color: #ff4d4d;
     box-shadow: none;
 }
 
 /* === SLIDERS === */
 input[type="range"] {
-    accent-color: #03dac6;
+    accent-color: #ff4d4d;
 }
 
 .slider {
@@ -298,11 +302,11 @@ input[type="range"] {
 }
 
 input:checked + .slider {
-    background-color: rgba(3, 218, 198, 0.5);
+    background-color: rgba(255, 77, 77, 0.5);
 }
 
 input:checked + .slider::before {
-    background-color: #03dac6;
+    background-color: #ff4d4d;
 }
 
 /* === THEME THUMBNAIL === */
@@ -312,7 +316,7 @@ input:checked + .slider::before {
 }
 
 .theme-thumbnail.active {
-    border-color: #03dac6;
+    border-color: #ff4d4d;
     box-shadow: none;
 }
 
@@ -323,9 +327,9 @@ input:checked + .slider::before {
 }
 
 .celebration-title {
-    color: #03dac6;
+    color: #ff4d4d;
     -webkit-text-stroke: 0;
-    text-shadow: 0 0 40px rgba(3, 218, 198, 0.4);
+    text-shadow: 0 0 40px rgba(255, 77, 77, 0.4);
 }
 
 .celebration-details {
@@ -346,14 +350,14 @@ input:checked + .slider::before {
 }
 
 .btn-confirm-yes {
-    background: #03dac6;
+    background: #ff4d4d;
     color: #121212;
     border-radius: 20px;
 }
 
 .btn-confirm-no {
     background: transparent;
-    color: #03dac6;
+    color: #ff4d4d;
     border: none;
     border-radius: 20px;
 }

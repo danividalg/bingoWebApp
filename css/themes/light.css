@@ -35,6 +35,10 @@
     --font-heading: 'Dela Gothic One', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
     --font-mono: 'SF Mono', 'Space Mono', monospace;
+
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #007aff;
+    --drum-text-color: #ffffff;
 }
 
 /* === BODY === */
@@ -121,17 +125,17 @@ body::before {
 /* === CURRENT BALL === */
 .ball {
     background: 
-        radial-gradient(circle at 30% 30%, #ffffff 0%, #f5f5f7 20%, #e8e8ed 50%, #d1d1d6 100%);
+        radial-gradient(circle at 30% 30%, #5ac8fa 0%, #007aff 60%, #0055cc 100%);
     border: none;
     box-shadow: 
-        inset -8px -8px 20px rgba(0,0,0,0.08),
-        0 10px 40px rgba(0, 0, 0, 0.12),
-        0 2px 8px rgba(0, 0, 0, 0.06);
-    color: #1d1d1f;
+        inset -8px -8px 20px rgba(0,0,0,0.1),
+        0 10px 40px rgba(0, 122, 255, 0.3),
+        0 2px 8px rgba(0, 122, 255, 0.2);
+    color: #ffffff;
 }
 
 .ball::after {
-    background: radial-gradient(circle, rgba(255,255,255,1), transparent 50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.3), transparent 50%);
 }
 
 /* === HISTORY BALLS === */

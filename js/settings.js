@@ -2,7 +2,7 @@ export class SettingsManager extends EventTarget {
     constructor() {
         super();
         this.state = {
-            theme: 'light',
+            theme: 'metal',
             mode: 'manual',
             timerDuration: 3,
             volume: 50,
@@ -43,7 +43,7 @@ export class SettingsManager extends EventTarget {
 
     resetToDefaults() {
         this.state = {
-            theme: 'light',
+            theme: 'metal',
             mode: 'manual',
             timerDuration: 3,
             volume: 50,

@@ -39,6 +39,10 @@
     --font-heading: 'Dela Gothic One', 'Playfair Display', 'Georgia', serif;
     --font-ui: 'Outfit', 'Georgia', serif;
     --font-mono: 'Space Mono', 'Courier New', monospace;
+
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #e8d5b7;
+    --drum-text-color: #2a1f18;
 }
 
 /* === BODY - Clean dark background === */

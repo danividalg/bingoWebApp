@@ -35,6 +35,10 @@
     --font-heading: 'Dela Gothic One', 'Didot', 'Bodoni MT', serif;
     --font-ui: 'Outfit', 'Optima', sans-serif;
     --font-mono: 'Space Mono', monospace;
+
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #dcebff;
+    --drum-text-color: #1a2030;
 }
 
 /* === BODY - Dark velvet background === */

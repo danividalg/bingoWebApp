@@ -38,6 +38,10 @@
     /* Fonts */
     --font-heading: 'Dela Gothic One', 'Copperplate', serif;
     --font-ui: 'Outfit', Georgia, serif;
+
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #cd7f32;
+    --drum-text-color: #1a1209;
 }
 
 /* === BODY - Clean dark background === */

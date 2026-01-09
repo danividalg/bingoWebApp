@@ -13,9 +13,47 @@ class Vector3 {
     normalize() { const l = this.length(); return l === 0 ? new Vector3() : this.mult(1 / l); }
     dot(v) { return this.x * v.x + this.y * v.y + this.z * v.z; }
     cross(v) { return new Vector3(this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x); }
+    
+    // Euler rotation around X axis
+    rotateX(angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return new Vector3(
+            this.x,
+            this.y * c - this.z * s,
+            this.y * s + this.z * c
+        );
+    }
+
+    // Euler rotation around Y axis
+    rotateY(angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return new Vector3(
+            this.x * c + this.z * s,
+            this.y,
+            -this.x * s + this.z * c
+        );
+    }
+
+    // Rotate vector around arbitrary axis (Rodrigues' rotation formula)
+    rotateAxis(axis, angle) {
+        const k = axis.normalize(); // Ensure axis is unit vector
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        
+        // v * cos(theta)
+        const term1 = this.mult(cos);
+        
+        // (k x v) * sin(theta)
+        const term2 = k.cross(this).mult(sin);
+        
+        // k * (k . v) * (1 - cos(theta))
+        const term3 = k.mult(k.dot(this) * (1 - cos));
+        
+        return term1.add(term2).add(term3);
+    }
 }
-
-
 
 class PhysicsEngine {
     constructor(ctx, width, height) {
@@ -27,38 +65,69 @@ class PhysicsEngine {
         this.sphereRadius = Math.min(width, height) / 2 - 10;
         
         this.balls = [];
-        this.drumRotation = 0;
-        this.drumSpeed = 0.05;
+        
+        // ULTRATHINK: Random Rotation Axis for more dynamic "Tumble"
+        // Avoid purely vertical (Y) or horizontal X/Z axes to prevent boring poles.
+        // We initialize with a diagonal axis.
+        this.rotationAxis = new Vector3(1, 0.5, 0.2).normalize();
+        
+        this.drumAngle = 0; // Accumulated angle
+        this.drumSpeed = 0.015; 
+        
         this.isRunning = false;
-        this.gravity = new Vector3(0, 0.4, 0); // Downward
-        this.wallBounciness = 0.7;
+        this.gravity = new Vector3(0, 0.8, 0); // Increased Gravity to Fix Equator Clustering
+        this.wallBounciness = 0.5; // Reduce bounce to keep them inside/rolling
         
         // Visual Style
         this.palette = ['#ff4d4d'];
         this.material = 'standard';
+
+        // Cage Geometry Cache
+        this.ribs = [];
+        this.rings = [];
+        this._initCageGeometry();
+        
+        // Time constant for axis wandering
+        this.time = 0;
+    }
+
+    _initCageGeometry() {
+        // Vertical Ribs (Meridians)
+        const numRibs = 12; // More detailed
+        for (let i = 0; i < numRibs; i++) {
+            this.ribs.push((Math.PI * 2 * i) / numRibs);
+        }
+        
+        // Horizontal Rings (Parallels)
+        const numRings = 7; 
+        for (let i = 0; i < numRings; i++) {
+            // -1 to 1 range
+            const yFactor = -0.9 + (i * 1.8) / (numRings - 1);
+            const radiusFactor = Math.sqrt(1 - yFactor * yFactor);
+            this.rings.push({ y: yFactor, r: radiusFactor }); // Storing as normalized Y and R
+        }
     }
 
     addBalls(count) {
         this.balls = [];
-        // Spawn distributed to minimize initial overlap
-        const spread = this.sphereRadius * 0.7; // Use 70% of available radius
+        // Spawn spread out but prefer top half to let them fall
+        const spread = this.sphereRadius * 0.5;
         
         for (let i = 0; i < count; i++) {
-            // Rejection sampling for spherical distribution could be better,
-            // but simple box spread is fine if large enough.
             this.balls.push({
-                id: i,
+                id: i + 1, 
                 r: 8, 
                 pos: new Vector3(
                     (Math.random() - 0.5) * spread,
-                    (Math.random() - 0.5) * spread,
+                    (Math.random() - 0.5) * spread - 20, // Start slightly higher
                     (Math.random() - 0.5) * spread
                 ),
                 vel: new Vector3(
-                    (Math.random() - 0.5) * 10,
-                    (Math.random() - 0.5) * 10,
-                    (Math.random() - 0.5) * 10
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
                 ),
+                angle: Math.random() * Math.PI * 2, 
                 colorBase: this.palette[0]
             });
         }
@@ -83,19 +152,25 @@ class PhysicsEngine {
     }
 
     updateColors() {
-        this.balls.forEach((b) => {
-            // Use only the first color in the palette for uniformity
-            b.colorBase = this.palette[0];
+        this.balls.forEach((b, i) => {
+            b.colorBase = this.palette[i % this.palette.length];
         });
     }
 
     update() {
         if (!this.isRunning) return;
 
-        // SUB-STEPPING for stability and realism
-        // More steps = less overlapping, stiffer collisions
-        const STEPS = 8; 
+        const STEPS = 4; 
         const dt = 1 / STEPS;
+
+        // Evolve Rotation Axis slowly (Wumble/Precession effect)
+        this.time += 0.01;
+        // Perturb axis slightly
+        this.rotationAxis = new Vector3(
+            Math.cos(this.time * 0.1),
+            Math.sin(this.time * 0.15) * 0.5, // Less vertical variation
+            Math.sin(this.time * 0.1)
+        ).normalize();
 
         for (let s = 0; s < STEPS; s++) {
             this.step(dt);
@@ -103,106 +178,109 @@ class PhysicsEngine {
     }
 
     step(dt) {
-        // Update Drum Rotation
-        this.drumRotation += this.drumSpeed * dt;
+        this.drumAngle += this.drumSpeed * dt;
         
-        // 1. Forces & Integration
+        // Correct Friction Calculation:
+        // The wall is moving. Local velocity of wall at point P is: v = omega x r
+        // Omega vector is aligned with rotation axis.
+        const omega = this.rotationAxis.mult(this.drumSpeed * 50); // Scale for angular velocity magnitude
+
         this.balls.forEach(ball => {
-            // Gravity
-            ball.vel = ball.vel.add(this.gravity.mult(dt));
-            
-            // Random Agitation (Air jets) - scaled by time/probability
-            if (Math.random() < 0.005) {
+             // 1. Gravity (Always down in world space)
+             ball.vel = ball.vel.add(this.gravity.mult(dt));
+
+             // 2. Air Drag / Damping
+             ball.vel = ball.vel.mult(0.995);
+
+             // Chaotic Turbulence
+             if (Math.random() < 0.05) { 
                 ball.vel = ball.vel.add(new Vector3(
-                    (Math.random()-0.5)*8, 
-                    -(Math.random()*12), // Stronger pops 
-                    (Math.random()-0.5)*8
-                ));
-            }
+                     (Math.random()-0.5)*8, 
+                     (Math.random()-0.5)*8, 
+                     (Math.random()-0.5)*8
+                 ));
+             }
 
-            // Integrate Velocity
-            ball.pos = ball.pos.add(ball.vel.mult(dt));
+             // 3. Movement
+             ball.pos = ball.pos.add(ball.vel.mult(dt));
+             
+             // 4. Tumbling Visualization
+             ball.angle += ball.vel.length() * 0.1 * dt;
 
-            // Sphere Wall Constraints
-            this.handleWallCollision(ball, dt);
+             this.handleWallCollision(ball, omega);
         });
 
-        // 2. Resolve Ball-Ball Collisions
         this.resolveCollisions();
     }
 
-    handleWallCollision(ball, dt) {
+    handleWallCollision(ball, omega) {
         const dist = ball.pos.length();
+        
+        // Constraint: Keep inside sphere
         if (dist + ball.r > this.sphereRadius) {
-            const n = ball.pos.normalize();
-            
-            // Positional Correction (push back inside immediately to prevent leaking)
+            const n = ball.pos.normalize(); // Normal pointing OUT
             const penetration = (dist + ball.r) - this.sphereRadius;
+            
+            // Hard Positional Fix
             ball.pos = ball.pos.sub(n.mult(penetration));
 
             // Velocity Reflection
             const vDotN = ball.vel.dot(n);
-            if (vDotN > 0) {
-                // Friction / Spin influence from drum wall
-                // Tangent direction (-y, x, 0) for Z-rotation
-                const tangent = new Vector3(-ball.pos.y, ball.pos.x, 0).normalize();
+            if (vDotN > 0) { // Moving outwards
+                // Elastic Bounce
+                const restitution = this.wallBounciness;
                 
-                // Wall surface velocity at this point
-                const surfaceSpeed = this.drumSpeed * this.sphereRadius * 0.5; // tuned
-                const wallVel = tangent.mult(surfaceSpeed);
+                // Pure reflection part
+                let reflected = ball.vel.sub(n.mult(2 * vDotN)); // * restitution done later
                 
-                // Relative velocity at contact
-                // We simplify: blend ball velocity towards wall velocity significantly to simulate friction dragging
-                // Standard Reflection
-                let reflected = ball.vel.sub(n.mult(2 * vDotN));
+                // Friction/Drag Application:
+                // Wall Velocity at this contact point:
+                // V_wall = Omega x R_ball
+                const vWall = omega.cross(ball.pos);
+
+                // Blend ball velocity towards wall velocity (Friction)
+                // Tangential component should match wall
+                const friction = 0.05; // Reduced from 0.2 - Slippery glass
+
+                // Add random deflection to reflection (uneven surface)
+                const jitter = new Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).mult(2); 
                 
-                // Blend with wall movement (Friction)
-                // The balls should "tumble" with the drum
-                ball.vel = reflected.mult(this.wallBounciness).add(wallVel.mult(0.1));
+                // Result: Reflect normal component, blend tangential component
+                ball.vel = reflected.add(jitter).mult(restitution).add(vWall.mult(friction));
             }
         }
     }
 
     resolveCollisions() {
-        // Simple O(N^2) solver
-        // Using impulse resolution + positional correction (separation)
+        const restitution = 0.7; // Softer collisions
         
-        const restitution = 0.85; // Energy loss on collision
-
+        // Spatial hash or just brute force for 90 balls is fine (approx 4000 pairs, fast in JS)
         for (let i = 0; i < this.balls.length; i++) {
             for (let j = i + 1; j < this.balls.length; j++) {
                 const b1 = this.balls[i];
                 const b2 = this.balls[j];
                 
-                // Check distance squared to avoid sqrt if not needed? 
-                // We need actual distance for separation.
-                const diff = b1.pos.sub(b2.pos);
-                const distSq = diff.dot(diff);
+                const dx = b1.pos.x - b2.pos.x;
+                const dy = b1.pos.y - b2.pos.y;
+                const dz = b1.pos.z - b2.pos.z;
+                const distSq = dx*dx + dy*dy + dz*dz;
                 const minDist = b1.r + b2.r;
                 
-                if (distSq < minDist * minDist && distSq > 0.0001) {
+                if (distSq < minDist * minDist) {
                     const dist = Math.sqrt(distSq);
-                    const n = diff.mult(1 / dist); // Normalized
+                    const n = new Vector3(dx/dist, dy/dist, dz/dist);
                     
-                    // 1. Positional Separation (Prevent overlap)
-                    // Push each apart by half the overlap
                     const overlap = minDist - dist;
-                    const separation = n.mult(overlap * 0.5);
+                    const sep = n.mult(overlap * 0.5);
                     
-                    b1.pos = b1.pos.add(separation);
-                    b2.pos = b2.pos.sub(separation);
+                    b1.pos = b1.pos.add(sep);
+                    b2.pos = b2.pos.sub(sep);
                     
-                    // 2. Velocity Impulse
                     const vRel = b1.vel.sub(b2.vel);
-                    const velAlongNormal = vRel.dot(n);
+                    const vN = vRel.dot(n);
                     
-                    // Only resolve if moving towards each other
-                    if (velAlongNormal < 0) {
-                        // J = -(1+e) * v_rel_norm / (1/m1 + 1/m2)
-                        // Assuming mass = 1 for all
-                        const j = -(1 + restitution) * velAlongNormal / 2;
-                        
-                        const impulse = n.mult(j);
+                    if (vN < 0) {
+                        const impulse = n.mult(-(1 + restitution) * vN * 0.5);
                         b1.vel = b1.vel.add(impulse);
                         b2.vel = b2.vel.sub(impulse);
                     }
@@ -213,83 +291,207 @@ class PhysicsEngine {
 
     draw() {
         if (!this.ctx) return;
+        
+        // Clear & Set Context
         this.ctx.clearRect(0, 0, this.width, this.height);
         
-        // 1. Sort balls by Z (painters algo)
-        const D = 500; // Perspective distance
-        const sortedBalls = [...this.balls].sort((a, b) => a.pos.z - b.pos.z);
+        // Draw Glass Background (The Body of the Drum)
+        const grad = this.ctx.createRadialGradient(this.cx, this.cy, this.sphereRadius * 0.2, this.cx, this.cy, this.sphereRadius);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+        grad.addColorStop(0.8, 'rgba(255, 255, 255, 0.1)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
         
-        sortedBalls.forEach(ball => {
+        this.ctx.fillStyle = grad;
+        this.ctx.beginPath();
+        this.ctx.arc(this.cx, this.cy, this.sphereRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // 3D Rendering Pipeline
+        // We draw in layers: Back Cage -> Balls (Sorted) -> Front Cage
+        
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+
+        // 1. Draw BACK Cage (Ribs & Rings where Z < 0)
+        this.drawCage('back');
+
+        // 2. Draw Balls (Sorted from Back to Front)
+        const D = 800; // Perspective depth
+        const sorted = [...this.balls].sort((a, b) => a.pos.z - b.pos.z);
+        
+        sorted.forEach(ball => {
             const scale = D / (D - ball.pos.z);
-            if (scale < 0) return;
+            const x = this.cx + ball.pos.x * scale;
+            const y = this.cy + ball.pos.y * scale;
+            const r = ball.r * scale;
             
-            const x2d = this.cx + ball.pos.x * scale;
-            const y2d = this.cy + ball.pos.y * scale;
-            const r2d = ball.r * scale;
+            if (scale < 0) return; // Behind camera
             
-            this.ctx.beginPath();
-            this.ctx.arc(x2d, y2d, Math.max(0, r2d), 0, Math.PI * 2);
-            
-            // Material Shader Logic
-            let grad;
-            const lightOffS = r2d * 0.3;
-            
-            // Note: Canvas gradients are cheap but creating them per frame per ball is standard
-            grad = this.ctx.createRadialGradient(
-                x2d - lightOffS, y2d - lightOffS, r2d * 0.1,
-                x2d, y2d, r2d
+            // Ball Shadow (Projected on 'floor' of drum? Hard. Standard drop shadow)
+            // this.ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            // this.ctx.shadowBlur = 5;
+
+            // Gradient Material
+            const bGrad = this.ctx.createRadialGradient(
+                x - r*0.3, y - r*0.3, r * 0.1,
+                x, y, r
             );
-
-            if (this.material === 'neon') {
-                // High contrast, emissive center
-                grad.addColorStop(0, '#ffffff');
-                grad.addColorStop(0.3, ball.colorBase);
-                grad.addColorStop(0.6, ball.colorBase);
-                grad.addColorStop(1, '#000000'); // Sharp dark edge
-                
-                // Emissive glow behind
-                this.ctx.shadowBlur = 15;
-                this.ctx.shadowColor = ball.colorBase;
-            } else if (this.material === 'matte') {
-                // Wood/felt style, soft light
-                grad.addColorStop(0, '#ffffff'); // Less intense highlight needed typically, but white is ok
-                grad.addColorStop(0.5, ball.colorBase);
-                // Darker edge
-                // Simple color darkening via mixing black is hard in pure hex
-                // We rely on colorBase being correct from theme
-                grad.addColorStop(1, 'rgba(0,0,0,0.5)'); // Artificial shadow
-                
-                this.ctx.shadowBlur = 0;
-            } else {
-                // Standard Glass/Plastic
-                grad.addColorStop(0, '#ffffff');
-                grad.addColorStop(0.2, ball.colorBase);
-                grad.addColorStop(1, 'rgba(0,0,0,0.8)'); // Generic dark
-                
-                this.ctx.shadowBlur = 5 * scale;
-                this.ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            }
             
-            this.ctx.fillStyle = grad;
+            // Sophisticated Material
+            if (this.material === 'neon') {
+                bGrad.addColorStop(0, '#fff');
+                bGrad.addColorStop(0.5, ball.colorBase);
+                bGrad.addColorStop(1, '#000');
+            } else {
+                bGrad.addColorStop(0, '#ffffff');
+                bGrad.addColorStop(0.3, ball.colorBase);
+                bGrad.addColorStop(0.9, '#000000'); // Deep shadow at edge
+            }
+
+            this.ctx.fillStyle = bGrad;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, r, 0, Math.PI * 2);
             this.ctx.fill();
-
-            // Reset Shadows
-            this.ctx.shadowColor = 'transparent';
-            this.ctx.shadowBlur = 0;
-
-            // Details (Band/Number)
-            if (scale > 0.6) {
-                this.ctx.save();
-                this.ctx.clip(); 
-                this.ctx.fillStyle = this.material === 'matte' 
-                    ? 'rgba(0,0,0,0.3)' // Dark ink on wood
-                    : 'rgba(255,255,255,0.7)'; // White on plastic
+            
+            // Specular Shine
+            this.ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            this.ctx.beginPath();
+            this.ctx.arc(x - r*0.3, y - r*0.3, r*0.25, 0, Math.PI*2);
+            this.ctx.fill();
+            
+            // Text Number
+            // Only draw if large enough
+            if (scale > 0.8) {
+                // Use configured text color
+                this.ctx.fillStyle = this.textColor || (this.material === 'neon' ? '#000' : '#fff');
+                this.ctx.font = `bold ${Math.max(8, r)}px "Outfit", sans-serif`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
                 
-                this.ctx.beginPath();
-                this.ctx.arc(x2d, y2d, r2d * 0.5, 0, Math.PI * 2);
-                this.ctx.fill();
+                // Slight rotation of number based on ball angle
+                this.ctx.save();
+                this.ctx.translate(x, y);
+                this.ctx.rotate(ball.angle);
+                this.ctx.fillText(ball.id, 0, 0);
                 this.ctx.restore();
             }
+        });
+
+        // 3. Draw FRONT Cage (Ribs & Rings where Z > 0)
+        this.ctx.shadowBlur = 10;
+        this.ctx.shadowColor = this.palette[0]; // Glow using theme color
+        this.drawCage('front');
+        this.ctx.shadowBlur = 0;
+    }
+
+    drawCage(layer) {
+        const D = 800;
+        
+        this.ctx.strokeStyle = layer === 'back' 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(255, 255, 255, 0.6)';
+        this.ctx.lineWidth = layer === 'back' ? 1 : 2;
+
+        const rot = this.drumAngle;
+
+        // Draw Ribs (Vertical Circles)
+        const res = 32;
+        
+        // Use Rotation Matrix for the whole cage
+        // We rotate points: P' = rotateAxis(P, rotTotal)
+        // Actually, we rotate points around rotationAxis by drumAngle
+        // But ribs are defined in canonical frame. So we rotate ( Canonical -> Rotated )
+        
+        this.ribs.forEach(baseAngle => {
+            this.ctx.beginPath();
+            let first = true;
+            
+            for (let i = 0; i <= res; i++) {
+                const theta = (i / res) * Math.PI * 2;
+                
+                // Rib local coords (Circle in XY plane, rotated around Y by baseAngle)
+                // x0 = R * sin(theta)
+                // y0 = R * cos(theta)
+                // z0 = 0
+                // Rotate by baseAngle around Y axis:
+                // x = x0 cos(base) + z0 sin(base) -> x0 cos(base)
+                // y = y0
+                // z = -x0 sin(base) + z0 cos(base) -> -x0 sin(base)
+                
+                // Simplified:
+                // Canonical Rib i (Meridian): arc passing through poles.
+                // Standard Param: P = (R sin(theta) cos(phi), R cos(theta), R sin(theta) sin(phi))
+                // Theta: 0 to 2PI (full circle through poles)
+                // Phi: baseAngle
+                
+                let p = new Vector3(
+                     this.sphereRadius * Math.sin(theta) * Math.cos(baseAngle),
+                     this.sphereRadius * Math.cos(theta),
+                     this.sphereRadius * Math.sin(theta) * Math.sin(baseAngle)
+                );
+                
+                // Apply Global Rotation
+                p = p.rotateAxis(this.rotationAxis, rot); 
+                
+                const show = layer === 'back' ? p.z < 0 : p.z >= -20;
+                
+                if (show) {
+                    const scale = D / (D - p.z);
+                    const drawX = this.cx + p.x * scale;
+                    const drawY = this.cy + p.y * scale;
+                    
+                    if (first) {
+                        this.ctx.moveTo(drawX, drawY);
+                        first = false;
+                    } else {
+                        this.ctx.lineTo(drawX, drawY);
+                    }
+                } else {
+                    first = true;
+                }
+            }
+            this.ctx.stroke();
+        });
+
+        // Draw Rings (Parallels)
+        this.rings.forEach(ring => {
+            const yStart = ring.y * this.sphereRadius;
+            const rStart = ring.r * this.sphereRadius;
+            
+            this.ctx.beginPath();
+            let first = true;
+            
+            for (let i = 0; i <= res; i++) {
+                const theta = (i / res) * Math.PI * 2;
+                
+                // Canonical points: (r cos(theta), y, r sin(theta))
+                let p = new Vector3(
+                    rStart * Math.cos(theta),
+                    yStart,
+                    rStart * Math.sin(theta)
+                );
+                
+                // Apply Global Rotation
+                p = p.rotateAxis(this.rotationAxis, rot);
+                
+                const show = layer === 'back' ? p.z < 0 : p.z >= -20;
+                
+                if (show) {
+                    const scale = D / (D - p.z);
+                    const drawX = this.cx + p.x * scale;
+                    const drawY = this.cy + p.y * scale;
+
+                    if (first) {
+                        this.ctx.moveTo(drawX, drawY);
+                        first = false;
+                    } else {
+                        this.ctx.lineTo(drawX, drawY);
+                    }
+                } else {
+                    first = true;
+                }
+            }
+            this.ctx.stroke();
         });
     }
 }
@@ -324,6 +526,9 @@ export class DrumController {
         this.canvas = document.createElement('canvas');
         this.drum.appendChild(this.canvas);
         
+        // Ensure drum wrapper styles
+        this.drum.className = 'drum-wrapper'; // Apply the 3D wrapper class
+        
         // Auto-Size & Init Physics
         this._resize();
         window.addEventListener('resize', () => this._resize());
@@ -332,7 +537,7 @@ export class DrumController {
         const themeLink = document.getElementById('theme-style');
         if (themeLink) {
              const observer = new MutationObserver(() => {
-                 setTimeout(() => this._updateThemeColors(), 100); // Wait for CSS
+                 setTimeout(() => this._updateThemeColors(), 100); 
              });
              observer.observe(themeLink, { attributes: true, attributeFilter: ['href'] });
         }
@@ -349,24 +554,23 @@ export class DrumController {
     _resize() {
         if (!this.drum || !this.canvas) return;
         const rect = this.drum.getBoundingClientRect();
-        // Handle high DPI
         const dpr = window.devicePixelRatio || 1;
+        
         this.canvas.width = rect.width * dpr;
         this.canvas.height = rect.height * dpr;
-        this.canvas.style.width = rect.width + 'px';
-        this.canvas.style.height = rect.height + 'px';
+        
+        // CSS display size matches parent
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
         
         if(this.ctx) this.ctx.scale(dpr, dpr);
 
         if(this.physics) {
-            this.physics.width = rect.width; // Logic coords usually match CSS pixels for simplicity
+            this.physics.width = rect.width; 
             this.physics.height = rect.height;
             this.physics.cx = rect.width / 2;
             this.physics.cy = rect.height / 2;
-            this.physics.sphereRadius = Math.min(rect.width, rect.height) / 2 - 15;
-            // Hack: reset ctx if scaled? 
-            // Better: physics engine uses logical coords.
-            // But we scaled the context. So draw calls use logical coords. Correct.
+            this.physics.sphereRadius = Math.min(rect.width, rect.height) / 2 - 5;
         }
     }
     
@@ -375,23 +579,18 @@ export class DrumController {
 
         const computed = getComputedStyle(document.body);
         
-        // Read Palette (try up to 8 colors)
-        const palette = [];
-        for (let i=1; i<=8; i++) {
-            const c = computed.getPropertyValue(`--ball-color-${i}`).trim();
-            if (c) palette.push(c);
-        }
+        // ULTRATHINK: Precise Color Matching
+        // Use drum specific variables if available, otherwise accent
+        const ballBase = computed.getPropertyValue('--drum-ball-base').trim();
+        const textColor = computed.getPropertyValue('--drum-text-color').trim();
+        const accent = computed.getPropertyValue('--color-accent').trim() || '#e91e63';
+        
+        // Palette uses base color
+        const palette = [ballBase || accent];
+        
+        // Store text color for rendering
+        this.physics.textColor = textColor || '#ffffff';
 
-        // If no palette, fallbacks
-        if (palette.length === 0) {
-            palette.push(
-                computed.getPropertyValue('--color-accent').trim() || '#e91e63',
-                computed.getPropertyValue('--color-secondary').trim() || '#c2185b'
-            );
-        }
-
-        // Detect Material Hint
-        // Easiest is checking theme name via href
         const themeHref = document.getElementById('theme-style')?.getAttribute('href') || '';
         let material = 'standard';
         if (themeHref.includes('wood') || themeHref.includes('steam')) material = 'matte';
@@ -409,7 +608,6 @@ export class DrumController {
     
     stopSpin() {
         this.isSpinning = false;
-        // Don't stop physics, just visual flag if needed
     }
 
     _loop() {
@@ -421,10 +619,8 @@ export class DrumController {
     }
 
     animateExtraction(number, onComplete) {
-        // High Speed Phase
         if(this.physics) {
              this.physics.drumSpeed = 0.25;
-             // Add upward impulse to all balls
              this.physics.balls.forEach(b => b.vel.y -= 15);
         }
 
@@ -433,7 +629,7 @@ export class DrumController {
         // Create Flying Element for visual continuity
         const rect = this.canvas.getBoundingClientRect();
         const flyBall = document.createElement('div');
-        flyBall.className = 'ball sphere'; // Re-use standard ball styles
+        flyBall.className = 'ball sphere'; // Keep existing CSS class
         flyBall.textContent = number;
         flyBall.style.position = 'fixed';
         flyBall.style.left = (rect.left + rect.width/2 - 25) + 'px';
@@ -445,13 +641,16 @@ export class DrumController {
         flyBall.style.transform = 'scale(0.1)';
         flyBall.style.opacity = '0';
         
+        // Match style to theme
+        const computed = getComputedStyle(document.body);
+        flyBall.style.background = computed.getPropertyValue('--ball-color-1') || '#fff';
+        flyBall.style.color = '#000';
+        
         document.body.appendChild(flyBall);
         
-        // Target position
         let targetRect = { left: window.innerWidth/2, top: window.innerHeight/2, width: 50, height: 50 };
         if (targetEl) targetRect = targetEl.getBoundingClientRect();
         
-        // Trigger Animation
         requestAnimationFrame(() => {
             flyBall.style.opacity = '1';
             flyBall.style.transform = 'scale(1)';
@@ -465,7 +664,6 @@ export class DrumController {
             if(targetEl) {
                 targetEl.textContent = number;
                 targetEl.classList.remove('hidden');
-                // Trigger pop animation
                 targetEl.animate([
                     { transform: 'scale(1.2)' },
                     { transform: 'scale(1)' }
@@ -475,10 +673,9 @@ export class DrumController {
             this._addToHistory(number);
             flyBall.remove();
             
-            // Remove one ball from physics engine simulation
             if (this.physics) { 
                 this.physics.removeBall();
-                this.physics.drumSpeed = 0.05; // Calm down
+                this.physics.drumSpeed = 0.02;
             }
 
             if (onComplete) onComplete();
@@ -493,7 +690,7 @@ export class DrumController {
         ball.className = 'history-ball';
         ball.textContent = number;
         historyTrack.insertBefore(ball, historyTrack.firstChild);
-        while (historyTrack.children.length > 10) {
+        while (historyTrack.children.length > 10) { // Limit history
             historyTrack.lastChild.remove();
         }
     }
@@ -506,5 +703,4 @@ export class DrumController {
     }
 }
 
-// Global Instance
 export const drumController = new DrumController();

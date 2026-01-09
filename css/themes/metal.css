@@ -38,6 +38,10 @@
     --font-heading: 'Dela Gothic One', 'Orbitron', sans-serif;
     --font-ui: 'Space Mono', monospace;
     --font-mono: 'Space Mono', monospace;
+
+    /* Drum specific override to match .ball styles */
+    --drum-ball-base: #00a0aa;
+    --drum-text-color: #0a0a12;
 }
 
 /* === BODY - Clean dark background === */
