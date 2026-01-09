@@ -259,7 +259,21 @@ Bingo/
 
 ---
 
-## 📜 Licencia
+## �️ Testing y Debugging
+
+Para propósitos de prueba y validación de las celebraciones de BINGO, es posible "trucar" el bombo desde la consola de desarrollador del navegador (F12).
+
+### Comandos de Consola
+
+| Acción | Comando |
+|--------|---------|
+| **Trucar Juego** | `app.rigGameForPlayer(app.players.players[0].id)` |
+
+*Este comando identifica los números restantes del primer jugador y los mete en una cola de prioridad para que salgan en las próximas extracciones.*
+
+---
+
+## �📜 Licencia
 Apache License 2.0
 
 ```
