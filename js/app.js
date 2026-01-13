@@ -321,7 +321,8 @@ class App {
         if (this.isAnimating) return;
         
         // Check if game is playable
-        if (this.engine.gameState === 'idle') {
+        // If idle or paused, we must start/resume before drawing
+        if (this.engine.gameState === 'idle' || this.engine.gameState === 'paused') {
             this.engine.start();
         }
 
