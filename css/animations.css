@@ -174,56 +174,6 @@
     }
 }
 
-/* HISTORY TRACK - Shows last 10 drawn balls (5 per row, 2 rows) */
-.history-track {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.25rem;
-    margin-top: clamp(0.5rem, 3vh, 1.5rem);
-    padding: clamp(0.25rem, 1.5vh, 0.75rem);
-    min-height: 40px;
-    justify-items: center;
-    align-content: start;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
-    border: 1px solid var(--color-border);
-    width: 100%;
-    max-width: 320px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.history-track:empty {
-    display: none;
-}
-
-.history-ball {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #666 0%, #2a2a2a 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #fff;
-    box-shadow: 
-        inset -3px -3px 6px rgba(0,0,0,0.5),
-        0 3px 6px rgba(0,0,0,0.4);
-    animation: pop-in 0.3s ease-out;
-}
-
-/* First ball (most recent) highlighted */
-.history-ball:first-child {
-    background: radial-gradient(circle at 30% 30%, var(--color-secondary) 0%, #1a1a1a 100%);
-    box-shadow: 
-        inset -3px -3px 6px rgba(0,0,0,0.4),
-        0 0 12px var(--color-secondary);
-    transform: scale(1.05);
-}
-
 @keyframes pop-in {
     0% { transform: scale(0); opacity: 0; }
     50% { transform: scale(1.2); }
