@@ -51,8 +51,9 @@
 /* --- 3D DRUM CAGE "ULTRATHINK" --- */
 .drum-stage {
     perspective: 1200px;
-    width: 300px;
-    height: 300px;
+    width: 100%;
+    aspect-ratio: 1; /* Modern Square Lock */
+    max-width: min(320px, 35vh);
     margin: 0 auto;
     position: relative;
     display: flex;
@@ -60,12 +61,18 @@
     align-items: center;
 }
 
+/* .drum-stage::before removed - We use aspect-ratio: 1 now */
+
 .drum-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    position: relative;
     transform-style: preserve-3d;
-    /* Rotation controlled by JS */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* The structural cage lines */

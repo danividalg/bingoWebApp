@@ -142,7 +142,30 @@ class PhysicsEngine {
     }
     
     setBallCount(count) {
-        this.addBalls(count);
+        const current = this.balls.length;
+        if (count < current) {
+            for (let i = 0; i < current - count; i++) {
+                this.removeBall();
+            }
+        } else if (count > current) {
+            // If massive difference (like starting new game or toggling perf mode), just reset
+            if (count - current > 10) {
+                this.addBalls(count);
+                return;
+            }
+            
+            const spread = this.sphereRadius * 0.5;
+            for (let i = 0; i < count - current; i++) {
+                this.balls.push({
+                    id: Math.floor(Math.random() * 90) + 1, 
+                    r: 8, 
+                    pos: new Vector3((Math.random()-0.5)*spread, (Math.random()-0.5)*spread, (Math.random()-0.5)*spread),
+                    vel: new Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*2, (Math.random()-0.5)*2),
+                    angle: Math.random() * Math.PI * 2, 
+                    colorBase: this.palette[0]
+                });
+            }
+        }
     }
 
     setPalette(colors, material) {
@@ -507,9 +530,9 @@ export class DrumController {
     
     // Engine
     canvas = null;
-    ctx = null;
     physics = null;
     animId = null;
+    performanceMode = true;
 
     init() {
         console.log('[DrumController] Initializing 3D Canvas Drum (ULTRATHINK)...');
@@ -530,8 +553,18 @@ export class DrumController {
         this.drum.className = 'drum-wrapper'; // Apply the 3D wrapper class
         
         // Auto-Size & Init Physics
-        this._resize();
-        window.addEventListener('resize', () => this._resize());
+        // ULTRATHINK: Use ResizeObserver instead of window resize to catch flexbox/grid changes
+        // This prevents the "distorted/flattened" sphere bug on wide screens where layout shifts 
+        // happen independently of window resize events.
+        if (this.resizeObserver) this.resizeObserver.disconnect();
+        
+        this.resizeObserver = new ResizeObserver((entries) => {
+             // We don't rely on entries dimensions because DPR scaling needs careful handling.
+             // Just trigger the internal resize logic.
+             // Use requestAnimationFrame to sync with paint cycle.
+             globalThis.requestAnimationFrame(() => this._resize());
+        });
+        this.resizeObserver.observe(this.drum);
         
         // Theme Observer
         const themeLink = document.getElementById('theme-style');
@@ -544,11 +577,26 @@ export class DrumController {
 
         // Init Physics Loop
         this.ctx = this.canvas.getContext('2d');
-        this.physics = new PhysicsEngine(this.ctx, this.canvas.width, this.canvas.height);
+        this.physics = new PhysicsEngine(this.ctx, 100, 100); // Initial dummy size
         this.physics.addBalls(this.config.numBalls);
+        
+        // ULTRATHINK: Forced Calibration
+        // We call _resize immediately after physics creation to sync,
+        // and again after a short delay to ensure the layout has settled.
+        this._resize();
+        setTimeout(() => this._resize(), 50);
+        setTimeout(() => this._resize(), 500); // Fail-safe for slow layout shifts
+
         this._updateThemeColors(); // Apply colors
         
+        this.syncBallCount(this.config.numBalls); // Apply Performance settings initially
+        
         this.startSpin();
+    }
+
+    syncBallCount(totalRemaining) {
+        if (!this.physics) return;
+        this.setBallCount(totalRemaining);
     }
 
     _resize() {
@@ -570,7 +618,7 @@ export class DrumController {
             this.physics.height = rect.height;
             this.physics.cx = rect.width / 2;
             this.physics.cy = rect.height / 2;
-            this.physics.sphereRadius = Math.min(rect.width, rect.height) / 2 - 5;
+            this.physics.sphereRadius = Math.min(rect.width, rect.height) / 2 - 10;
         }
     }
     
@@ -618,7 +666,7 @@ export class DrumController {
         this.animId = requestAnimationFrame(() => this._loop());
     }
 
-    animateExtraction(number, onComplete) {
+    animateExtraction(number, totalRemaining, onComplete) {
         if(this.physics) {
              this.physics.drumSpeed = 0.25;
              this.physics.balls.forEach(b => b.vel.y -= 15);
@@ -674,7 +722,10 @@ export class DrumController {
             flyBall.remove();
             
             if (this.physics) { 
-                this.physics.removeBall();
+                const target = this.performanceMode ? Math.ceil(totalRemaining / 10) : totalRemaining;
+                if (this.physics.balls.length > target) {
+                    this.physics.removeBall();
+                }
                 this.physics.drumSpeed = 0.02;
             }
 
@@ -697,7 +748,11 @@ export class DrumController {
 
     setBallCount(count) {
         if (this.physics) {
-            this.physics.setBallCount(count);
+            let actualCount = count;
+            if (this.performanceMode) {
+                actualCount = Math.ceil(count / 10);
+            }
+            this.physics.setBallCount(actualCount);
             this._updateThemeColors();
         }
     }

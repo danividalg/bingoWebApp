@@ -65,16 +65,16 @@ body {
 .game-layout {
     flex: 1;
     display: grid;
-    grid-template-columns: 4fr 1fr;
+    grid-template-columns: 4fr 1.2fr;
     gap: var(--gap-layout);
-    padding-bottom: 0;
+    padding-bottom: 0.25rem;
     min-height: 0; /* Prevent overflow issues */
-    max-height: calc(100vh - var(--players-bar-height) - 8px);
+    max-height: calc(100vh - var(--players-bar-height) - 5px);
     overflow: hidden;
 }
 
 .game-layout.no-players {
-    max-height: calc(100vh - 16px);
+    max-height: calc(100vh - 15px);
 }
 
 /* HEADERS */
@@ -133,13 +133,13 @@ h2 {
     border-radius: 50%;
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: clamp(0.65rem, 1.4vw, 1.1rem);
+    font-size: clamp(0.6rem, 2vmin, 1.1rem);
     color: var(--color-text-muted);
     transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     border: 1px solid transparent;
     aspect-ratio: 1;
-    width: clamp(28px, 5.5vw, 55px);
-    height: clamp(28px, 5.5vw, 55px);
+    width: clamp(20px, 8vmin, 55px);
+    height: clamp(20px, 8vmin, 55px);
 }
 
 .bingo-cell:hover {
@@ -152,12 +152,12 @@ h2 {
 .cage-container {
     background: var(--color-panel);
     border: 1px solid var(--color-border);
-    padding: 0.5rem;
+    padding: clamp(0.25rem, 2vh, 0.5rem);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     position: relative;
     overflow: hidden;
     min-height: 0;
@@ -200,6 +200,19 @@ h2 {
     transform: none;
 }
 
+/* ACCESSIBILITY */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
 .btn-icon {
     background: transparent;
     border: 1px solid var(--color-border);
@@ -221,7 +234,7 @@ h2 {
 
 /* CURRENT BALL DISPLAY - SPHERICAL */
 .current-draw {
-    margin-top: 2rem;
+    margin-top: clamp(0.5rem, 5vh, 2rem);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -229,14 +242,14 @@ h2 {
 
 .draw-label {
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: clamp(0.6rem, 1.5vh, 0.8rem);
     color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .ball {
-    width: 150px;
-    height: 150px;
+    width: clamp(60px, 25vmin, 150px);
+    height: clamp(60px, 25vmin, 150px);
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #ffffff, #d1d1d1 20%, #999999 40%, #444444 80%, #222222 100%);
     box-shadow: 
@@ -246,7 +259,7 @@ h2 {
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: 4.5rem;
+    font-size: clamp(2rem, 12vmin, 4.5rem);
     color: #111;
     position: relative;
     z-index: 10;

@@ -87,6 +87,7 @@ class App {
         // Drum init happens on DOMContentLoaded in its own file? No, we refactored it to be manual if needed.
         // But drum.js might trigger implicit init if we didn't fully clean it. 
         // We removed auto-init, so we call it here.
+        this.drum.performanceMode = this.settings.performanceMode;
         this.drum.init();
         
         // Initialize Settings UI bindings (must be after DOM is ready)
@@ -364,7 +365,8 @@ class App {
         await new Promise(r => setTimeout(r, 1800));
 
         // 2. Drum Animation
-        this.drum.animateExtraction(number, async () => {
+        const remaining = this.engine.getRemainingNumbers().length;
+        this.drum.animateExtraction(number, remaining, async () => {
              // 3. Post-Animation Sequence
              this.audio.playBallPop();
              this.audio.speakNumber(number);
@@ -711,6 +713,12 @@ class App {
         
         this.settings.applyTheme();
         
+        // Performance Mode sync
+        if (this.drum) {
+            this.drum.performanceMode = state.performanceMode;
+            this.drum.setBallCount(this.engine.getRemainingNumbers().length);
+        }
+
         // Handle mode change
         if (state.mode === 'manual') {
             this.pauseAuto();

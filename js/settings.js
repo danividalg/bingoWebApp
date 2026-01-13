@@ -8,7 +8,8 @@ export class SettingsManager extends EventTarget {
             volume: 50,
             maxLines: 1,      // Máximo líneas permitidas (0 = infinito)
             maxBingos: 1,     // Máximo bingos permitidos (0 = infinito)
-            voiceEnabled: true
+            voiceEnabled: true,
+            performanceMode: true // Performance mode for slow devices
         };
         
         // Themes definition for reference/UI generation
@@ -49,7 +50,8 @@ export class SettingsManager extends EventTarget {
             volume: 50,
             maxLines: 1,      
             maxBingos: 1,     
-            voiceEnabled: true
+            voiceEnabled: true,
+            performanceMode: true
         };
         this.saveSettings();
         this.applySettings();
@@ -75,6 +77,12 @@ export class SettingsManager extends EventTarget {
             document.getElementById('timer-control')?.classList.toggle('disabled', !modeSwitch.checked);
         }
 
+        // Update Performance Mode
+        const perfSwitch = document.getElementById('setting-performance');
+        if (perfSwitch) {
+            perfSwitch.checked = this.state.performanceMode;
+        }
+
         // Update Ranges
         const updateRange = (id, val, displaySuffix = '') => {
             const el = document.getElementById(id);
@@ -97,6 +105,12 @@ export class SettingsManager extends EventTarget {
     get maxLines() { return this.state.maxLines; }
     get maxBingos() { return this.state.maxBingos; }
     get voiceEnabled() { return this.state.voiceEnabled; }
+    get performanceMode() { return this.state.performanceMode; }
+
+    setPerformanceMode(enabled) {
+        this.state.performanceMode = enabled;
+        this.saveSettings();
+    }
 
     // Setters
     setTheme(id) {
@@ -155,9 +169,20 @@ export class SettingsManager extends EventTarget {
     bindUI() {
         this._bindThemeSelection();
         this._bindModeSwitch();
+        this._bindPerformanceSwitch();
         this._bindTimerSlider();
         this._bindVolumeControl();
         this._bindLimitsControls();
+    }
+
+    _bindPerformanceSwitch() {
+        const perfSwitch = document.getElementById('setting-performance');
+        if (!perfSwitch) return;
+
+        perfSwitch.checked = this.state.performanceMode;
+        perfSwitch.addEventListener('change', (e) => {
+            this.setPerformanceMode(e.target.checked);
+        });
     }
 
     _bindThemeSelection() {

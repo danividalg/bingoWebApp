@@ -143,7 +143,8 @@
                         <h3 class="group-title">GAME MODE</h3>
                         <div class="control-row mode-switch">
                             <span class="label">MANUAL</span>
-                            <label class="switch">
+                            <label class="switch" for="setting-mode">
+                                <span class="sr-only">Automático</span>
                                 <input type="checkbox" id="setting-mode">
                                 <span class="slider"></span>
                             </label>
@@ -165,6 +166,20 @@
                         </div>
                     </section>
 
+                    <!-- PERFORMANCE -->
+                    <section class="settings-group">
+                        <h3 class="group-title">RENDIMIENTO</h3>
+                        <div class="control-row mode-switch">
+                            <label for="setting-performance" class="label">MODO TV (LIMITADO)</label>
+                            <label class="switch" for="setting-performance">
+                                <span class="sr-only">Activar rendimiento limitado</span>
+                                <input type="checkbox" id="setting-performance">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <p class="setting-hint">Reduce el número de animaciones 3D para mayor fluidez.</p>
+                    </section>
+
                     <!-- LIMITS -->
                     <section class="settings-group">
                         <h3 class="group-title">LÍMITES</h3>
@@ -183,7 +198,7 @@
                 </div>
 
                 <footer class="modal-footer">
-                    <div class="version-badge">v1.05</div>
+                    <div class="version-badge">v1.06</div>
                     <button id="btn-print" class="btn-secondary">PRINT CARDS</button>
                     <button id="btn-reset-system" class="btn-danger">RESET TOTAL</button>
                 </footer>

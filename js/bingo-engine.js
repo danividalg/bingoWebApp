@@ -42,6 +42,14 @@ export class BingoEngine extends EventTarget {
   }
 
   /**
+   * Returns copy of numbers remaining in the pool.
+   * @returns {number[]}
+   */
+  getRemainingNumbers() {
+    return [...this.availableNumbers];
+  }
+
+  /**
    * Starts or Resumes the game.
    */
   start() {
