@@ -32,8 +32,11 @@
     --gap-grid: 0.25rem;
     
     /* DIMENSIONS */
-    --ball-size: 60px;
-    --players-bar-height: 120px;
+    --ball-size: calc(60px * var(--ui-scale));
+    --players-bar-height: calc(120px * var(--ui-scale));
+    
+    --app-height-limit: 100%;
+    --ui-scale: 1;
 }
 
 /* RESET */
@@ -43,8 +46,12 @@
     padding: 0;
 }
 
+html {
+    background-color: #000;
+}
+
 body {
-    background-color: var(--color-bg);
+    background-color: transparent;
     color: var(--color-text-main);
     font-family: var(--font-ui);
     height: 100vh;
@@ -55,41 +62,55 @@ body {
 
 /* APP CONTAINER */
 .app-container {
-    height: 100%;
+    /* Height will be set dynamically by JS based on maxHeight setting */
+    width: 100vw;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     padding: 0.25rem 0.5rem 0;
+    background-color: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    transition: height 0.3s ease;
+    
+    /* ENABLE CONTAINER QUERIES for children */
+    container-type: size;
+    container-name: app;
+    
+    /* Position for proper modal behavior */
+    position: relative;
 }
 
-/* MAIN LAYOUT - GRID 80% 20% */
+/* MAIN LAYOUT */
 .game-layout {
-    flex: 1;
+    /* Fixed proportion: 85% of available container height */
+    flex: 0 0 85%;
     display: grid;
     grid-template-columns: 4fr 1.2fr;
     gap: var(--gap-layout);
     padding-bottom: 0.25rem;
-    min-height: 0; /* Prevent overflow issues */
-    max-height: calc(100vh - var(--players-bar-height) - 5px);
-    overflow: hidden;
+    min-height: 0; 
+    overflow: hidden; /* Contain content within bounds */
 }
 
 .game-layout.no-players {
-    max-height: calc(100vh - 15px);
+    /* When no players, game-layout takes 100% of the available space */
+    flex: 1 1 100%;
 }
 
 /* HEADERS */
 .section-header {
-    margin-bottom: 0.5rem;
+    margin-bottom: clamp(0.15rem, 1cqh, 0.5rem);
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 2px solid var(--color-border);
-    padding-bottom: 0.25rem;
+    padding-bottom: clamp(0.1rem, 0.5cqh, 0.25rem);
+    flex-shrink: 0;
 }
 
 h2 {
     font-family: var(--font-heading);
-    font-size: 1.1rem;
+    font-size: clamp(0.7rem, 2.5cqh, 1.1rem);
     letter-spacing: -0.05em;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -115,14 +136,16 @@ h2 {
 .bingo-grid {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(9, 1fr);
+    grid-template-rows: repeat(9, minmax(0, 1fr)); /* minmax(0,1fr) prevents row expansion */
     gap: 2px;
     flex: 1;
     width: 100%;
+    height: 100%;
     min-height: 0;
     max-height: 100%;
     padding: 4px;
     place-items: center;
+    overflow: hidden;
 }
 
 .bingo-cell {
@@ -133,54 +156,54 @@ h2 {
     border-radius: 50%;
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: clamp(0.6rem, 2vmin, 1.1rem);
+    
+    /* Font scales with container height */
+    font-size: clamp(0.35rem, 2.5cqh, 1.2rem);
+    
     color: var(--color-text-muted);
     transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     border: 1px solid transparent;
+    
+    /* Size based on height of row, not width */
+    width: auto;
+    height: 90%;
     aspect-ratio: 1;
-    width: clamp(20px, 8vmin, 55px);
-    height: clamp(20px, 8vmin, 55px);
 }
 
 .bingo-cell:hover {
     border-color: var(--color-secondary);
     color: var(--color-secondary);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 10px var(--color-secondary);
+    transform: scale(1.05);
 }
 
-/* CAGE SECTION */
-.cage-container {
-    background: var(--color-panel);
-    border: 1px solid var(--color-border);
-    padding: clamp(0.25rem, 2vh, 0.5rem);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    min-height: 0;
+.bingo-cell.drawn {
+    background: var(--bg-drawn);
+    color: var(--color-drawn);
+    box-shadow: 0 0 8px var(--color-accent);
+    border: none;
 }
 
 /* CONTROLS BAR */
 .controls-bar {
     display: flex;
-    gap: 0.5rem;
+    gap: clamp(0.2rem, 0.8cqh, 0.5rem);
     margin-top: auto;
-    padding-top: 0.5rem;
+    padding-top: clamp(0.1rem, 0.5cqh, 0.35rem);
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
+    min-height: clamp(26px, 7cqh, 44px);
+    flex-shrink: 0;
 }
 
 .btn-primary {
     background: var(--color-accent);
     color: #fff;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: clamp(0.3rem, 1.5cqh, 0.75rem) clamp(0.6rem, 3cqh, 1.5rem);
     font-family: var(--font-mono);
-    font-size: 1rem;
+    font-size: clamp(0.65rem, 2.5cqh, 1rem);
     font-weight: 700;
     cursor: pointer;
     border-radius: 6px;
@@ -217,8 +240,8 @@ h2 {
     background: transparent;
     border: 1px solid var(--color-border);
     color: var(--color-text-main);
-    width: 44px;
-    height: 44px;
+    width: clamp(26px, 6cqh, 44px);
+    height: clamp(26px, 6cqh, 44px);
     border-radius: 6px;
     cursor: pointer;
     display: flex;
@@ -227,6 +250,7 @@ h2 {
     transition: all 0.2s;
 }
 
+
 .btn-icon:hover {
     border-color: var(--color-accent);
     color: var(--color-accent);
@@ -234,22 +258,24 @@ h2 {
 
 /* CURRENT BALL DISPLAY - SPHERICAL */
 .current-draw {
-    margin-top: clamp(0.5rem, 5vh, 2rem);
+    padding: clamp(0.1rem, 0.5cqh, 0.35rem);
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 0 0 auto;
+    justify-content: center;
 }
 
 .draw-label {
     font-family: var(--font-mono);
-    font-size: clamp(0.6rem, 1.5vh, 0.8rem);
+    font-size: clamp(0.6rem, 1.5cqh, 0.8rem);
     color: var(--color-text-muted);
     margin-bottom: 0.25rem;
 }
 
 .ball {
-    width: clamp(60px, 25vmin, 150px);
-    height: clamp(60px, 25vmin, 150px);
+    width: clamp(28px, 10cqh, 80px);
+    height: clamp(28px, 10cqh, 80px);
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #ffffff, #d1d1d1 20%, #999999 40%, #444444 80%, #222222 100%);
     box-shadow: 
@@ -259,10 +285,11 @@ h2 {
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: clamp(2rem, 12vmin, 4.5rem);
+    font-size: clamp(0.85rem, 5cqh, 2.2rem);
     color: #111;
     position: relative;
     z-index: 10;
+    flex-shrink: 0;
 }
 
 .ball::after {
@@ -277,21 +304,29 @@ h2 {
     filter: blur(2px);
 }
 
-/* PLAYERS BAR */
-.players-dock {
-    height: 80px;
-    background: #000;
-    border-top: 1px solid var(--color-border);
+/* CAGE CONTAINER */
+.cage-container {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    padding: clamp(0.2rem, 1cqh, 0.5rem);
+    border-radius: 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 0 1rem;
-    gap: 1rem;
-    margin-top: 0;
+    justify-content: flex-start;
+    gap: clamp(0.1rem, 0.8cqh, 0.5rem);
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    /* Enable container queries for proportional child scaling */
+    container-type: size;
+    container-name: cage;
 }
 
 .player-slot {
     flex: 1;
-    height: 50px;
+    height: calc(50px * var(--ui-scale));
+    min-height: 30px;
     background: var(--color-panel);
     border: 1px solid var(--color-border);
     border-radius: 4px;
@@ -300,14 +335,5 @@ h2 {
     justify-content: center;
     font-family: var(--font-ui);
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-}
-
-/* UTILITY / STATES */
-.bingo-cell.drawn {
-    background: var(--bg-drawn);
-    color: var(--color-drawn);
-    box-shadow: 0 0 8px var(--color-accent);
-    z-index: 1;
-    border: none;
+    font-size: calc(0.9rem * var(--ui-scale));
 }

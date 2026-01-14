@@ -532,7 +532,7 @@ export class DrumController {
     canvas = null;
     physics = null;
     animId = null;
-    performanceMode = true;
+    performanceMode = 'high';
 
     init() {
         console.log('[DrumController] Initializing 3D Canvas Drum (ULTRATHINK)...');
@@ -651,14 +651,23 @@ export class DrumController {
          if (this.animId) cancelAnimationFrame(this.animId);
          this.isSpinning = true;
          if (this.physics) this.physics.isRunning = true;
+         
+         if (this.performanceMode === 'disabled') {
+             this.physics.draw();
+             return;
+         }
+         
          this._loop();
     }
     
     stopSpin() {
         this.isSpinning = false;
+        if (this.animId) cancelAnimationFrame(this.animId);
     }
 
     _loop() {
+        if (this.performanceMode === 'disabled') return;
+
         if (this.physics) {
             this.physics.update();
             this.physics.draw();
@@ -668,8 +677,10 @@ export class DrumController {
 
     animateExtraction(number, totalRemaining, onComplete) {
         if(this.physics) {
-             this.physics.drumSpeed = 0.25;
-             this.physics.balls.forEach(b => b.vel.y -= 15);
+            if (this.performanceMode !== 'disabled') {
+                this.physics.drumSpeed = 0.25;
+                this.physics.balls.forEach(b => b.vel.y -= 15);
+            }
         }
 
         const targetEl = document.getElementById('current-ball');
@@ -722,11 +733,16 @@ export class DrumController {
             flyBall.remove();
             
             if (this.physics) { 
-                const target = this.performanceMode ? Math.ceil(totalRemaining / 10) : totalRemaining;
+                const isLimited = this.performanceMode === 'low' || this.performanceMode === 'disabled';
+                const target = isLimited ? Math.ceil(totalRemaining / 10) : totalRemaining;
                 if (this.physics.balls.length > target) {
                     this.physics.removeBall();
                 }
-                this.physics.drumSpeed = 0.02;
+                if (this.performanceMode === 'disabled') {
+                    this.physics.draw(); // Force redraw to show removed ball
+                } else {
+                    this.physics.drumSpeed = 0.02;
+                }
             }
 
             if (onComplete) onComplete();
@@ -749,11 +765,15 @@ export class DrumController {
     setBallCount(count) {
         if (this.physics) {
             let actualCount = count;
-            if (this.performanceMode) {
+            if (this.performanceMode === 'low' || this.performanceMode === 'disabled') {
                 actualCount = Math.ceil(count / 10);
             }
             this.physics.setBallCount(actualCount);
             this._updateThemeColors();
+            
+           if (this.performanceMode === 'disabled') {
+               this.physics.draw();
+           }
         }
     }
 }

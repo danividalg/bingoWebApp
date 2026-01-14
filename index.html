@@ -19,6 +19,16 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- TOP CONTROLS -->
+        <div class="top-controls" style="position: absolute; top: 1rem; right: 1rem; z-index: 50;">
+            <button id="open-settings" class="btn-icon settings-trigger" aria-label="Configuración" title="Configuración">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </button>
+        </div>
+
         <!-- Celebration Overlay -->
         <div id="celebration-overlay" class="celebration-overlay hidden" aria-hidden="true">
             <h1 class="celebration-title" aria-label="Celebración">¡BINGO!</h1>
@@ -79,9 +89,6 @@
                             <path d="M3 3v5h5"/>
                         </svg>
                     </button>
-                    <button id="open-settings" class="btn-icon settings-trigger" aria-label="Configuración" title="Configuración">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </button>
                 </div>
             </section>
         </main>
@@ -93,128 +100,139 @@
         <aside id="players-bar" class="players-dock">
             <!-- Players will be injected by JS -->
         </aside>
+    </div>
 
-        <!-- ADD PLAYER MODAL -->
-        <div id="add-player-modal" class="settings-modal hidden">
-            <div class="modal-backdrop"></div>
-            <div class="modal-content glass-panel" style="width: min(400px, 90vw);">
-                <header class="modal-header">
-                    <h2 class="modal-title">AÑADIR JUGADOR</h2>
-                    <button id="close-add-player" class="btn-close" aria-label="Cerrar">×</button>
-                </header>
-                
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="player-name">Nombre del jugador</label>
-                        <input type="text" id="player-name" class="form-input" placeholder="Ej: María García" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="player-cards">Número de cartones</label>
-                        <input type="number" id="player-cards" class="form-input" min="1" max="10" value="1">
-                    </div>
+    <!-- MODALS - Outside app-container to avoid transform context issues -->
+    
+    <!-- ADD PLAYER MODAL -->
+    <div id="add-player-modal" class="settings-modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel" style="width: min(400px, 90vw);">
+            <header class="modal-header">
+                <h2 class="modal-title">AÑADIR JUGADOR</h2>
+                <button id="close-add-player" class="btn-close" aria-label="Cerrar">×</button>
+            </header>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="player-name">Nombre del jugador</label>
+                    <input type="text" id="player-name" class="form-input" placeholder="Ej: María García" autocomplete="off">
                 </div>
-
-                <footer class="modal-footer">
-                    <button id="btn-confirm-add-player" class="btn-primary">AÑADIR</button>
-                </footer>
+                <div class="form-group">
+                    <label for="player-cards">Número de cartones</label>
+                    <input type="number" id="player-cards" class="form-input" min="1" max="10" value="1">
+                </div>
             </div>
-        </div>
 
-        <!-- CONFIG MODAL -->
-        <div id="settings-modal" class="settings-modal hidden">
-            <div class="modal-backdrop"></div>
-            <div class="modal-content glass-panel">
-                <header class="modal-header">
-                    <h2 class="modal-title">SYSTEM // CONFIG</h2>
-                    <button id="close-settings" class="btn-close" aria-label="Close">×</button>
-                </header>
+            <footer class="modal-footer">
+                <button id="btn-confirm-add-player" class="btn-primary">AÑADIR</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- CONFIG MODAL -->
+    <div id="settings-modal" class="settings-modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <header class="modal-header">
+                <h2 class="modal-title">SYSTEM // CONFIG</h2>
+                <button id="close-settings" class="btn-close" aria-label="Close">×</button>
+            </header>
+            
+            <div class="modal-body">
+                <!-- THEME SECTION -->
+                <section class="settings-group">
+                    <h3 class="group-title">VISUAL THEME</h3>
+                    <div class="theme-grid">
+                        <!-- Injected by JS -->
+                    </div>
+                </section>
+
+                <!-- GAME MODE -->
+                <section class="settings-group">
+                    <h3 class="group-title">GAME MODE</h3>
+                    <div class="control-row mode-switch">
+                        <span class="label">MANUAL</span>
+                        <label class="switch" for="setting-mode">
+                            <span class="sr-only">Automático</span>
+                            <input type="checkbox" id="setting-mode">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label">AUTO</span>
+                    </div>
+                    <div id="timer-control" class="control-row disabled">
+                        <label for="setting-timer">PACE</label>
+                        <input type="range" id="setting-timer" min="1" max="10" step="1">
+                        <span id="setting-timer-val" class="value-display">3s</span>
+                    </div>
+                </section>
                 
-                <div class="modal-body">
-                    <!-- THEME SECTION -->
-                    <section class="settings-group">
-                        <h3 class="group-title">VISUAL THEME</h3>
-                        <div class="theme-grid">
-                            <!-- Injected by JS -->
-                        </div>
-                    </section>
+                <!-- AUDIO -->
+                <section class="settings-group">
+                    <h3 class="group-title">AUDIO</h3>
+                    <div class="control-row">
+                        <label for="setting-volume">MASTER VOL</label>
+                        <input type="range" id="setting-volume" min="0" max="100">
+                    </div>
+                </section>
 
-                    <!-- GAME MODE -->
-                    <section class="settings-group">
-                        <h3 class="group-title">GAME MODE</h3>
-                        <div class="control-row mode-switch">
-                            <span class="label">MANUAL</span>
-                            <label class="switch" for="setting-mode">
-                                <span class="sr-only">Automático</span>
-                                <input type="checkbox" id="setting-mode">
-                                <span class="slider"></span>
-                            </label>
-                            <span class="label">AUTO</span>
-                        </div>
-                        <div id="timer-control" class="control-row disabled">
-                            <label for="setting-timer">PACE</label>
-                            <input type="range" id="setting-timer" min="1" max="10" step="1">
-                            <span id="setting-timer-val" class="value-display">3s</span>
-                        </div>
-                    </section>
-                    
-                    <!-- AUDIO -->
-                    <section class="settings-group">
-                        <h3 class="group-title">AUDIO</h3>
-                        <div class="control-row">
-                            <label for="setting-volume">MASTER VOL</label>
-                            <input type="range" id="setting-volume" min="0" max="100">
-                        </div>
-                    </section>
+                <!-- PERFORMANCE -->
+                <section class="settings-group">
+                    <h3 class="group-title">RENDIMIENTO</h3>
+                    <div class="control-row" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
+                        <label for="setting-performance" class="label">NIVEL DE DETALLE</label>
+                        <select id="setting-performance" class="select-input" style="background: var(--color-panel); color: var(--color-text-main); border: 1px solid var(--color-border); padding: 0.5rem; border-radius: 4px; font-family: var(--font-mono);">
+                            <option value="high">ALTO (Todas las bolas)</option>
+                            <option value="low">BAJO (Limitado / 10)</option>
+                            <option value="disabled">DESACTIVADO (Estático)</option>
+                        </select>
+                    </div>
+                </section>
 
-                    <!-- PERFORMANCE -->
-                    <section class="settings-group">
-                        <h3 class="group-title">RENDIMIENTO</h3>
-                        <div class="control-row mode-switch">
-                            <label for="setting-performance" class="label">MODO TV (LIMITADO)</label>
-                            <label class="switch" for="setting-performance">
-                                <span class="sr-only">Activar rendimiento limitado</span>
-                                <input type="checkbox" id="setting-performance">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <p class="setting-hint">Reduce el número de animaciones 3D para mayor fluidez.</p>
-                    </section>
+                <!-- SCREEN LIMITS -->
+                <section class="settings-group">
+                    <h3 class="group-title">LÍMITES DE PANTALLA</h3>
+                    <div class="control-row">
+                        <label for="setting-max-height">ALTURA PANTALLA</label>
+                        <input type="range" id="setting-max-height" min="50" max="100" step="1" value="100">
+                        <span id="setting-max-height-val" class="value-display">100%</span>
+                    </div>
+                </section>
 
-                    <!-- LIMITS -->
-                    <section class="settings-group">
-                        <h3 class="group-title">LÍMITES</h3>
-                        <div class="control-row">
-                            <label for="setting-max-lines">MÁX. LÍNEAS</label>
-                            <input type="range" id="setting-max-lines" min="0" max="10" step="1" value="1">
-                            <span id="setting-max-lines-val" class="value-display">1</span>
-                        </div>
-                        <div class="control-row">
-                            <label for="setting-max-bingos">MÁX. BINGOS</label>
-                            <input type="range" id="setting-max-bingos" min="0" max="10" step="1" value="1">
-                            <span id="setting-max-bingos-val" class="value-display">1</span>
-                        </div>
-                        <p class="setting-hint">0 = Sin límite (∞)</p>
-                    </section>
-                </div>
-
-                <footer class="modal-footer">
-                    <div class="version-badge">v1.07</div>
-                    <button id="btn-print" class="btn-secondary">PRINT CARDS</button>
-                    <button id="btn-reset-system" class="btn-danger">RESET TOTAL</button>
-                </footer>
+                <!-- GAME SETTINGS -->
+                <section class="settings-group">
+                    <h3 class="group-title">AJUSTES DE JUEGO</h3>
+                    <div class="control-row">
+                        <label for="setting-max-lines">MÁX. LÍNEAS</label>
+                        <input type="range" id="setting-max-lines" min="0" max="10" step="1" value="1">
+                        <span id="setting-max-lines-val" class="value-display">1</span>
+                    </div>
+                    <div class="control-row">
+                        <label for="setting-max-bingos">MÁX. BINGOS</label>
+                        <input type="range" id="setting-max-bingos" min="0" max="10" step="1" value="1">
+                        <span id="setting-max-bingos-val" class="value-display">1</span>
+                    </div>
+                    <p class="setting-hint">0 = Sin límite (∞)</p>
+                </section>
             </div>
-        </div>
 
-        <!-- CONFIRM MODAL (styled replacement for browser confirm) -->
-        <div id="confirm-modal" class="confirm-modal">
-            <div class="confirm-content">
-                <div class="confirm-icon">⚠️</div>
-                <h3 class="confirm-title" id="confirm-title">Confirmar</h3>
-                <p class="confirm-message" id="confirm-message">¿Estás seguro?</p>
-                <div class="confirm-buttons">
-                    <button id="confirm-no" class="btn-confirm btn-confirm-no">CANCELAR</button>
-                    <button id="confirm-yes" class="btn-confirm btn-confirm-yes">ACEPTAR</button>
-                </div>
+            <footer class="modal-footer">
+                <div class="version-badge">v1.08</div>
+                <button id="btn-print" class="btn-secondary">PRINT CARDS</button>
+                <button id="btn-reset-system" class="btn-danger">RESET TOTAL</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL (styled replacement for browser confirm) -->
+    <div id="confirm-modal" class="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-icon">⚠️</div>
+            <h3 class="confirm-title" id="confirm-title">Confirmar</h3>
+            <p class="confirm-message" id="confirm-message">¿Estás seguro?</p>
+            <div class="confirm-buttons">
+                <button id="confirm-no" class="btn-confirm btn-confirm-no">CANCELAR</button>
+                <button id="confirm-yes" class="btn-confirm btn-confirm-yes">ACEPTAR</button>
             </div>
         </div>
     </div>

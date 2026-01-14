@@ -9,7 +9,8 @@ export class SettingsManager extends EventTarget {
             maxLines: 1,      // Máximo líneas permitidas (0 = infinito)
             maxBingos: 1,     // Máximo bingos permitidos (0 = infinito)
             voiceEnabled: true,
-            performanceMode: true // Performance mode for slow devices
+            performanceMode: 'low', // 'high', 'low', 'disabled'
+            maxHeight: 100 // % height
         };
         
         // Themes definition for reference/UI generation
@@ -28,12 +29,19 @@ export class SettingsManager extends EventTarget {
     init() {
         this.loadSettings();
         this.applySettings();
+        this._setupResizeListener();
     }
 
     loadSettings() {
         const stored = localStorage.getItem('bingo_settings');
         if (stored) {
-            this.state = { ...this.state, ...JSON.parse(stored) };
+            const parsed = JSON.parse(stored);
+            this.state = { ...this.state, ...parsed };
+            
+            // Migration for performanceMode (boolean -> string)
+            if (typeof this.state.performanceMode === 'boolean') {
+                this.state.performanceMode = this.state.performanceMode ? 'low' : 'high';
+            }
         }
     }
 
@@ -51,7 +59,8 @@ export class SettingsManager extends EventTarget {
             maxLines: 1,      
             maxBingos: 1,     
             voiceEnabled: true,
-            performanceMode: true
+            performanceMode: 'high',
+            maxHeight: 100
         };
         this.saveSettings();
         this.applySettings();
@@ -77,10 +86,9 @@ export class SettingsManager extends EventTarget {
             document.getElementById('timer-control')?.classList.toggle('disabled', !modeSwitch.checked);
         }
 
-        // Update Performance Mode
-        const perfSwitch = document.getElementById('setting-performance');
-        if (perfSwitch) {
-            perfSwitch.checked = this.state.performanceMode;
+        // Update Pelect = document.getElementById('setting-performance');
+        if (perfSelect) {
+            perfSelect.value = this.state.performanceMode;
         }
 
         // Update Ranges
@@ -95,6 +103,7 @@ export class SettingsManager extends EventTarget {
         updateRange('setting-volume', this.state.volume);
         updateRange('setting-max-lines', this.state.maxLines);
         updateRange('setting-max-bingos', this.state.maxBingos);
+        updateRange('setting-max-height', this.state.maxHeight, '%');
     }
 
     // Getters
@@ -106,9 +115,16 @@ export class SettingsManager extends EventTarget {
     get maxBingos() { return this.state.maxBingos; }
     get voiceEnabled() { return this.state.voiceEnabled; }
     get performanceMode() { return this.state.performanceMode; }
+    get maxHeight() { return this.state.maxHeight; }
 
-    setPerformanceMode(enabled) {
-        this.state.performanceMode = enabled;
+    setPerformanceMode(mode) {
+        this.state.performanceMode = mode;
+        this.saveSettings();
+    }
+
+    setMaxHeight(val) {
+        this.state.maxHeight = val;
+        this.applyMaxHeight();
         this.saveSettings();
     }
 
@@ -160,12 +176,51 @@ export class SettingsManager extends EventTarget {
         // For now, just save.
     }
 
+    applyMaxHeight() {
+        const heightPercent = this.state.maxHeight;
+        const appContainer = document.querySelector('.app-container');
+        
+        if (appContainer) {
+            // Calculate actual pixel height based on viewport
+            const viewportHeight = window.innerHeight;
+            const appHeight = (viewportHeight * heightPercent) / 100;
+            
+            // Set app container height directly instead of using transform
+            appContainer.style.height = `${appHeight}px`;
+            appContainer.style.width = '100vw';
+            
+            // Remove any transform (cleanup from previous approach)
+            appContainer.style.transform = 'none';
+        }
+        
+        // Calculate UI scale for elements that need proportional sizing
+        const scale = heightPercent / 100;
+        document.documentElement.style.setProperty('--ui-scale', Math.max(0.6, scale));
+        document.documentElement.style.setProperty('--app-height-limit', heightPercent + '%');
+        document.documentElement.style.setProperty('--actual-app-height', `${(window.innerHeight * heightPercent) / 100}px`);
+    }
+    
+    // Recalculate on window resize to maintain proportions
+    _setupResizeListener() {
+        if (this._resizeListenerAttached) return;
+        this._resizeListenerAttached = true;
+        
+        window.addEventListener('resize', () => {
+            // Debounce resize handling
+            clearTimeout(this._resizeTimeout);
+            this._resizeTimeout = setTimeout(() => {
+                this.applyMaxHeight();
+            }, 100);
+        });
+    }
+
     applySettings() {
         this.applyTheme();
         this.applyAudio();
+        this.applyMaxHeight();
     }
 
-    // UI Binding - Refactored to reduce cognitive complexity
+    // UI Binding
     bindUI() {
         this._bindThemeSelection();
         this._bindModeSwitch();
@@ -176,12 +231,18 @@ export class SettingsManager extends EventTarget {
     }
 
     _bindPerformanceSwitch() {
-        const perfSwitch = document.getElementById('setting-performance');
-        if (!perfSwitch) return;
+        const perfSelect = document.getElementById('setting-performance');
+        if (!perfSelect) return;
 
-        perfSwitch.checked = this.state.performanceMode;
-        perfSwitch.addEventListener('change', (e) => {
-            this.setPerformanceMode(e.target.checked);
+        // Reset any checkbox state if it was there
+        if (perfSelect.type === 'checkbox') {
+             // Should not happen if HTML is updated, but safe guard or re-binding
+        } else {
+             perfSelect.value = this.state.performanceMode;
+        }
+
+        perfSelect.addEventListener('change', (e) => {
+            this.setPerformanceMode(e.target.value);
         });
     }
 
@@ -244,6 +305,20 @@ export class SettingsManager extends EventTarget {
     _bindLimitsControls() {
         this._bindRangeControl('setting-max-lines', 'setting-max-lines-val', this.state.maxLines, (val) => this.setMaxLines(val));
         this._bindRangeControl('setting-max-bingos', 'setting-max-bingos-val', this.state.maxBingos, (val) => this.setMaxBingos(val));
+        
+        // Max Height binding
+        const heightInput = document.getElementById('setting-max-height');
+        const heightVal = document.getElementById('setting-max-height-val');
+        if (heightInput) {
+            heightInput.value = this.state.maxHeight;
+            if(heightVal) heightVal.textContent = this.state.maxHeight + '%';
+            
+            heightInput.addEventListener('input', (e) => {
+                const val = Number.parseInt(e.target.value, 10);
+                this.setMaxHeight(val);
+                if(heightVal) heightVal.textContent = val + '%';
+            });
+        }
     }
 
     _bindRangeControl(inputId, valueId, initialValue, setter) {

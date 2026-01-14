@@ -2,25 +2,28 @@
 
 /* --- PLAYERS BAR (Horizontal Scroll Dock) --- */
 .players-dock {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    height: 120px;
+    /* Fixed proportion: 15% of available container height */
+    flex: 0 0 15%;
+    min-height: 0; /* Allow shrinking with container */
+    max-height: none; /* No max - let flex control */
     background: var(--color-panel);
     border-top: 1px solid var(--color-border);
     display: none; /* Hidden by default, shown via JS */
     gap: 0.5rem;
-    padding: 0.25rem 1rem;
+    padding: 0.25rem 0.5rem;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    z-index: 50;
+    z-index: 1; /* Lower z-index - normal stacking */
     backdrop-filter: blur(10px);
+    /* No margin-top:auto - flex handles positioning */
 }
 
 .players-dock.has-players {
     display: flex;
+    align-items: center;
 }
 
 .players-dock:empty::after {
@@ -53,12 +56,16 @@
     perspective: 1200px;
     width: 100%;
     aspect-ratio: 1; /* Modern Square Lock */
-    max-width: min(320px, 35vh);
+    /* Use container query height for proportional scaling */
+    max-width: min(280px, 32cqh);
+    max-height: 32cqh;
     margin: 0 auto;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 1;
+    flex-grow: 0;
 }
 
 /* .drum-stage::before removed - We use aspect-ratio: 1 now */
@@ -128,11 +135,14 @@
 
 /* --- PLAYER CARD (Mini-Carton) --- */
 .player-card {
-    flex: 0 0 160px; /* Compact width */
+    /* Width proportional to available height for aspect ratio */
+    flex: 0 0 auto;
+    width: clamp(100px, calc(160px * var(--ui-scale)), 160px);
     height: 100%;
+    max-height: 100%;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    padding: 0.4rem;
+    padding: clamp(0.15rem, calc(0.4rem * var(--ui-scale)), 0.4rem);
     display: flex;
     flex-direction: column;
     scroll-snap-align: center;
@@ -141,6 +151,9 @@
     overflow: hidden;
     border-radius: 6px;
     cursor: pointer;
+    /* Container query context for interior scaling */
+    container-type: size;
+    container-name: playercard;
 }
 
 .player-card:hover {
@@ -160,15 +173,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.2rem;
+    margin-bottom: clamp(0.05rem, 2cqh, 0.2rem);
     border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0.2rem;
-    gap: 0.25rem;
+    padding-bottom: clamp(0.05rem, 2cqh, 0.2rem);
+    gap: 0.15rem;
+    flex-shrink: 0;
+    min-height: 0;
 }
 
 .player-name {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: clamp(0.45rem, 12cqh, 0.65rem);
     font-weight: 700;
     color: var(--color-text-main);
     text-transform: uppercase;
@@ -178,6 +193,7 @@
     text-overflow: ellipsis;
     flex: 1;
     min-width: 0;
+    line-height: 1.1;
 }
 
 /* Card Count Badge */
@@ -188,12 +204,12 @@
     background: var(--color-secondary);
     color: #000;
     font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: clamp(0.4rem, 10cqh, 0.55rem);
     font-weight: 700;
-    min-width: 18px;
-    height: 18px;
+    min-width: clamp(12px, 30cqh, 18px);
+    height: clamp(12px, 30cqh, 18px);
     border-radius: 3px;
-    padding: 0 4px;
+    padding: 0 2px;
     flex-shrink: 0;
 }
 
@@ -212,9 +228,9 @@
     background: transparent;
     border: none;
     color: var(--color-text-muted);
-    font-size: 1rem;
+    font-size: clamp(0.6rem, 15cqh, 1rem);
     cursor: pointer;
-    padding: 0 0.25rem;
+    padding: 0 0.1rem;
     line-height: 1;
     transition: all 0.2s;
     opacity: 0.5;
@@ -231,8 +247,10 @@
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     gap: 1px;
-    flex-grow: 1;
-    align-content: start;
+    flex: 1 1 auto;
+    align-content: stretch;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .mini-cell {
@@ -241,10 +259,11 @@
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono);
-    font-size: 0.5rem;
+    font-size: clamp(0.3rem, 8cqh, 0.5rem);
     color: var(--color-text-muted);
     background: rgba(255,255,255,0.03);
-    border-radius: 2px;
+    border-radius: 1px;
+    overflow: hidden;
 }
 
 .mini-cell.marked {
@@ -371,6 +390,7 @@
 
 /* --- SETTINGS MODAL --- */
 .settings-modal {
+    /* Use viewport units directly for consistent centering */
     position: fixed;
     top: 0; 
     left: 0;
@@ -380,6 +400,8 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    /* Ensure modal is not affected by any parent transforms */
+    transform: none !important;
 }
 
 .settings-modal.hidden {
@@ -913,12 +935,12 @@ input:checked + .slider:before {
 .history-track {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: clamp(2px, 0.5vh, 4px);
-    margin-top: clamp(0.25rem, 2vh, 1.5rem);
-    padding: clamp(0.25rem, 1vh, 0.75rem);
+    gap: clamp(2px, 0.5cqh, 4px);
+    margin-top: clamp(0.15rem, 1cqh, 0.75rem);
+    padding: clamp(0.15rem, 1cqh, 0.5rem);
     min-height: 0;
     justify-items: center;
-    align-content: start;
+    align-content: center;
     background: rgba(0, 0, 0, 0.25);
     border-radius: 10px;
     border: 1px solid var(--color-border);
@@ -935,15 +957,15 @@ input:checked + .slider:before {
 }
 
 .history-ball {
-    width: clamp(28px, 6vh, 52px);
-    height: clamp(28px, 6vh, 52px);
+    width: clamp(20px, 5cqh, 48px);
+    height: clamp(20px, 5cqh, 48px);
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #666 0%, #2a2a2a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono);
-    font-size: clamp(0.7rem, 2vh, 1.1rem);
+    font-size: clamp(0.5rem, 1.5cqh, 1rem);
     font-weight: bold;
     color: #fff;
     box-shadow: 
@@ -961,9 +983,11 @@ input:checked + .slider:before {
 }
 
 /* MEDIA QUERIES FOR VERTICAL RESIZING */
+/* Note: drum-stage now uses container queries (cqh) so media queries are less critical */
 @media (max-height: 800px) {
     .drum-stage {
-        max-width: min(240px, 30vh);
+        max-width: min(240px, 40cqh);
+        max-height: 40cqh;
     }
 }
 
@@ -974,57 +998,57 @@ input:checked + .slider:before {
     
     .cage-container {
         padding: 0.25rem;
-        gap: 0;
-        justify-content: space-evenly; 
     }
 
     .section-header {
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.15rem;
+        padding-bottom: 0.15rem;
     }
     
     h2 {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .drum-stage {
-        max-width: min(160px, 25vh); 
+        max-width: min(160px, 38cqh);
+        max-height: 38cqh;
     }
     
     .current-draw {
-        margin-top: 0.25rem;
+        padding: 0.1rem;
     }
 
     .current-draw .ball {
-        width: clamp(50px, 15vh, 90px);
-        height: clamp(50px, 15vh, 90px);
-        font-size: clamp(1.5rem, 6vh, 2.5rem);
+        width: clamp(32px, 10cqh, 60px);
+        height: clamp(32px, 10cqh, 60px);
+        font-size: clamp(0.9rem, 5cqh, 1.8rem);
     }
     
     .history-track {
-        margin-top: 0.25rem;
-        gap: 2px;
-        padding: 4px;
+        margin-top: 0.1rem;
+        gap: 1px;
+        padding: 3px;
         grid-template-columns: repeat(5, 1fr);
     }
 
     .history-ball {
-       width: clamp(24px, 5vh, 32px);
-       height: clamp(24px, 5vh, 32px);
-       font-size: 0.75rem;
+       width: clamp(16px, 4cqh, 26px);
+       height: clamp(16px, 4cqh, 26px);
+       font-size: 0.6rem;
     }
     
     .controls-bar {
-        padding-top: 0.25rem;
+        padding-top: 0.1rem;
     }
     
     .btn-primary {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
     }
     
     .btn-icon {
-        width: 32px;
-        height: 32px;
+        width: 26px;
+        height: 26px;
     }
 }
 
