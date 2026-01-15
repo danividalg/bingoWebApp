@@ -1052,6 +1052,72 @@ input:checked + .slider:before {
     }
 }
 
+/* --- DIAGNOSTIC MODAL --- */
+#diagnostic-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#diagnostic-modal.hidden {
+    display: none;
+}
+
+#diagnostic-modal .modal-content {
+    border-left: 4px solid #f97316;
+}
+
+#diagnostic-content {
+    user-select: text;
+    max-height: 60vh;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+}
+
+.diagnostic-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.diagnostic-label {
+    font-weight: bold;
+    color: #a1a1aa;
+}
+
+.diagnostic-value {
+    font-family: monospace;
+    color: #e4e4e7;
+    text-align: right;
+}
+
+.btn-copy-diagnostic {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-mono, monospace);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.btn-copy-diagnostic:hover {
+    color: var(--color-text);
+    border-color: var(--color-accent);
+    background: rgba(255,255,255,0.05);
+}
+
 @media (max-height: 400px) {
     .drum-stage {
         display: none; 
@@ -1060,5 +1126,51 @@ input:checked + .slider:before {
     .history-track {
          grid-template-columns: repeat(10, 1fr);
     }
+}
+
+
+/* --- DIAGNOSTIC MODAL & UTILS --- */
+.hidden {
+    display: none !important;
+}
+
+.diagnostic-summary {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.diagnostic-suggestion {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--color-accent);
+    border-radius: 8px;
+    text-align: left;
+    font-size: 0.95rem;
+}
+
+.diagnostic-suggestion strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-accent);
+}
+
+.diagnostic-actions {
+    display: flex;
+    justify-content: center;
+}
+
+#diagnostic-content .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: #aaa;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+#diagnostic-content .btn-secondary:hover {
+    color: #fff;
+    border-color: #fff;
+    background: rgba(255,255,255,0.05);
 }
 

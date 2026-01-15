@@ -217,7 +217,7 @@
             </div>
 
             <footer class="modal-footer">
-                <div class="version-badge">v1.08</div>
+                <div class="version-badge">v1.09</div>
                 <button id="btn-print" class="btn-secondary">PRINT CARDS</button>
                 <button id="btn-reset-system" class="btn-danger">RESET TOTAL</button>
             </footer>
@@ -234,6 +234,28 @@
                 <button id="confirm-no" class="btn-confirm btn-confirm-no">CANCELAR</button>
                 <button id="confirm-yes" class="btn-confirm btn-confirm-yes">ACEPTAR</button>
             </div>
+        </div>
+    </div>
+
+    <!-- DIAGNOSTIC MODAL (TTS Errors) -->
+    <div id="diagnostic-modal" class="modal" aria-hidden="true" style="display: none;">
+        <div class="modal-content diagnostic-content-wrapper">
+            <header class="modal-header">
+                <div class="header-title-group">
+                    <span class="warning-icon">⚠️</span>
+                    <h2>Error de Voz (TTS)</h2>
+                </div>
+                <button class="btn-close" data-close-modal aria-label="Cerrar">×</button>
+            </header>
+            <div class="modal-body scrollable">
+                <div id="diagnostic-content">
+                    <!-- Contenido dinámico insertado via JS -->
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button id="btn-copy-diagnostic" class="btn-secondary">Copiar información</button>
+                <button class="btn-primary" data-close-modal>Cerrar</button>
+            </footer>
         </div>
     </div>
 

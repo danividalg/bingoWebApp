@@ -11,16 +11,20 @@ export class AudioManager {
     initialized = false;
     voices = [];
     synth = globalThis.speechSynthesis;
+    initTimestamp = null;
+    lastError = null;
+    voicesTimeoutId = null;
+    onTTSError = null;
 
     constructor() {
         // Bind for safe passing
-        this._loadVoices = this._loadVoices.bind(this);
+        this.loadVoices = this.loadVoices.bind(this);
         
-        if (this.synth.onvoiceschanged === undefined) {
-             this._loadVoices();
-        } else {
-             this.synth.onvoiceschanged = this._loadVoices;
-        }
+        // Setup voices listener
+        this.synth.onvoiceschanged = this.loadVoices;
+        
+        // Initial attempt
+        this.loadVoices();
     }
 
     /**
@@ -29,6 +33,8 @@ export class AudioManager {
      */
     init() {
         if (this.initialized) return;
+        
+        this.initTimestamp = Date.now();
 
         // Cross-browser support
         const AudioContext = globalThis.AudioContext || globalThis.webkitAudioContext;
@@ -38,13 +44,63 @@ export class AudioManager {
         this.masterGain.gain.value = this.isMuted ? 0 : this.volume;
         this.masterGain.connect(this.ctx.destination);
 
-        this._loadVoices();
+        // Ensure voices are loaded (retry)
+        this.loadVoices();
+        
         this.initialized = true;
         console.log('AudioManager: Initialized Web Audio API');
     }
 
-    _loadVoices() {
+    loadVoices() {
         this.voices = this.synth.getVoices();
+
+        // 4. Asegurarse de que si las voces cargan antes (evento voiceschanged),
+        // se cancele el timeout para evitar falsos positivos.
+        if (this.voices.length > 0) {
+            if (this.voicesTimeoutId) {
+                clearTimeout(this.voicesTimeoutId);
+                this.voicesTimeoutId = null;
+            }
+            return;
+        }
+
+        // 1. Establecer un setTimeout de 3000ms.
+        // Only set if not already waiting
+        if (!this.voicesTimeoutId) {
+            this.voicesTimeoutId = setTimeout(() => {
+                // 2. Dentro del timeout: verificar si this.synth.getVoices().length === 0.
+                if (this.synth.getVoices().length === 0) {
+                    const error = new Error("No hay voces TTS disponibles en este dispositivo");
+                    this.lastError = error;
+                    console.error('TTS Detection:', error.message);
+                    
+                    // 3. Si es 0, invocar this.onTTSError(...)
+                    if (typeof this.onTTSError === 'function') {
+                        this.onTTSError(error);
+                    }
+                }
+                this.voicesTimeoutId = null;
+            }, 3000);
+        }
+    }
+
+    _getVoice() {
+        return this.voices.find(v => v.lang === 'es-ES') || 
+               this.voices.find(v => v.lang.startsWith('es'));
+    }
+
+    getTTSDiagnostics() {
+        const selectedVoice = this._getVoice();
+        return {
+            speechSynthesisAvailable: !!this.synth,
+            voicesCount: this.voices.length,
+            voicesList: this.voices.slice(0, 5).map(v => v.name),
+            selectedVoice: selectedVoice ? selectedVoice.name : "None",
+            initTimestamp: this.initTimestamp,
+            lastError: this.lastError,
+            userAgent: navigator.userAgent,
+            platform: navigator.platform // NOSONAR
+        };
     }
 
     setVolume(val) {
@@ -230,61 +286,76 @@ export class AudioManager {
      * TTS: Speech Synthesis
      */
     speakNumber(number) {
-        if (this.isMuted) return;
-        
-        this.synth.cancel(); // Interrupt previous speech
-
-        // Special nicknames map
-        const specialNames = {
-            1: "El pequeñito",
-            2: "El patito",
-            11: "Las banderillas",
-            13: "La mala suerte",
-            15: "La niña bonita",
-            22: "Los dos patitos",
-            33: "La edad de Cristo",
-            44: "Las sillitas",
-            48: "El de los pollos",
-            55: "Los dos cincos",
-            69: "La vuelta al mundo",
-            77: "Las dos muletas",
-            88: "Las dos calabazas",
-            90: "El abuelo"
-        };
-        
-        let text;
-        
-        if (specialNames[number]) {
-            // "Number, Nickname"
-            text = `${number}, ${specialNames[number]}`;
-        } else if (number >= 70 && number <= 79) {
-            // The 70s special rule: "Setenta y cuatro" -> "74: Siete Cuatro"
-            // Except 77 which is handled above by specialNames check
-            const digitNames = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-            const digits = number.toString().split('').map(d => Number.parseInt(d, 10));
+        try {
+            if (this.isMuted) return;
             
-            // "74, siete cuatro"
-            text = `${number}, siete ${digitNames[digits[1]]}`;
-        } else {
-             text = `${number}`;
+            this.synth.cancel(); // Interrupt previous speech
+
+            // Special nicknames map
+            const specialNames = {
+                1: "El pequeñito",
+                2: "El patito",
+                11: "Las banderillas",
+                13: "La mala suerte",
+                15: "La niña bonita",
+                22: "Los dos patitos",
+                33: "La edad de Cristo",
+                44: "Las sillitas",
+                48: "El de los pollos",
+                55: "Los dos cincos",
+                69: "La vuelta al mundo",
+                77: "Las dos muletas",
+                88: "Las dos calabazas",
+                90: "El abuelo"
+            };
+            
+            let text;
+            
+            if (specialNames[number]) {
+                // "Number, Nickname"
+                text = `${number}, ${specialNames[number]}`;
+            } else if (number >= 70 && number <= 79) {
+                // The 70s special rule: "Setenta y cuatro" -> "74: Siete Cuatro"
+                // Except 77 which is handled above by specialNames check
+                const digitNames = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+                const digits = number.toString().split('').map(d => Number.parseInt(d, 10));
+                
+                // "74, siete cuatro"
+                text = `${number}, siete ${digitNames[digits[1]]}`;
+            } else {
+                 text = `${number}`;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Priority: Spanish (Spain) -> Spanish (Any) -> Default
+            const voice = this._getVoice();
+            
+            if (voice) {
+                utterance.voice = voice;
+            }
+
+            utterance.onerror = (e) => {
+                this.lastError = e;
+                console.error('TTS Error:', e);
+                if (typeof this.onTTSError === 'function') {
+                    this.onTTSError(e);
+                }
+            };
+
+            utterance.rate = 1; 
+            utterance.pitch = 1;
+            // Amplify vocals 1.5x relative to effects (clamped at 1.0)
+            utterance.volume = Math.min(1, this.volume * 2);
+
+            this.synth.speak(utterance);
+        } catch (error) {
+            this.lastError = error;
+            console.error('TTS Exception:', error);
+            if (typeof this.onTTSError === 'function') {
+                this.onTTSError(error);
+            }
         }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Priority: Spanish (Spain) -> Spanish (Any) -> Default
-        const voice = this.voices.find(v => v.lang === 'es-ES') || 
-                      this.voices.find(v => v.lang.startsWith('es'));
-        
-        if (voice) {
-            utterance.voice = voice;
-        }
-
-        utterance.rate = 1; 
-        utterance.pitch = 1;
-        // Amplify vocals 1.5x relative to effects (clamped at 1.0)
-        utterance.volume = Math.min(1, this.volume * 2);
-
-        this.synth.speak(utterance);
     }
 }
 

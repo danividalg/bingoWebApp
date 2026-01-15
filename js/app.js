@@ -93,6 +93,16 @@ class App {
         // Initialize Settings UI bindings (must be after DOM is ready)
         this.settings.bindUI();
 
+        // Register TTS Error Callback
+        this.audio.onTTSError = (error) => {
+            const diagnostics = this.audio.getTTSDiagnostics();
+            this.ui.showDiagnosticModal({ 
+                title: "⚠️ Error de Voz (TTS)", 
+                errorMessage: error.message || "Error desconocido", 
+                diagnosticData: diagnostics 
+            });
+        };
+
         // Audio: Initialize on first user interaction (browser policy)
         const initAudioOnce = () => {
             this.audio.init();

@@ -11,6 +11,7 @@ export class UIManager {
         this.initSettingsModal();
         this.initPlayerCardsModal();
         this.initOverlayControls();
+        this.initDiagnosticModal();
     }
 
     initOverlayControls() {
@@ -569,5 +570,185 @@ export class UIManager {
     hidePlayerCardsModal() {
         if (!this.playerCardsModal) return;
         this.playerCardsModal.classList.remove('visible');
+    }
+
+    initDiagnosticModal() {
+        const modal = document.getElementById('diagnostic-modal');
+        if (!modal) return;
+        
+        const closeBtns = modal.querySelectorAll('[data-close-modal]');
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        });
+        
+        const copyBtn = document.getElementById('btn-copy-diagnostic');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                this.copyDiagnosticInfo();
+            });
+        }
+    }
+
+    /**
+     * Copy diagnostic info to clipboard with fallback
+     */
+    copyDiagnosticInfo() {
+        const content = document.getElementById('diagnostic-content');
+        if (!content) return;
+
+        // Temporarily reveal details to capture full text
+        const detailsDiv = content.querySelector('#diagnostic-details');
+        const wasHidden = detailsDiv && detailsDiv.classList.contains('hidden');
+        
+        if (wasHidden) detailsDiv.classList.remove('hidden');
+        const textToCopy = content.innerText;
+        if (wasHidden) detailsDiv.classList.add('hidden');
+
+        // Fallback function for older browsers/WebViews
+        const fallbackCopy = (text) => {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Ensure invisible but selectable
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                // Deprecated but required as fallback for older devices (Android 9 WebView)
+                const successful = document.execCommand('copy'); // NOSONAR
+                if (successful) {
+                    this.showToast('Información copiada', 'success');
+                } else {
+                    this.showToast('No se pudo copiar al portapapeles', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+                this.showToast('Error al copiar información', 'error');
+            }
+
+            textArea.remove();
+        };
+
+        // Try Clipboard API first
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    this.showToast('Información copiada', 'success');
+                })
+                .catch(err => {
+                    console.warn('Clipboard API failed, trying fallback', err);
+                    fallbackCopy(textToCopy);
+                });
+        } else {
+            fallbackCopy(textToCopy);
+        }
+    }
+
+    /**
+     * Shows diagnostic modal for TTS errors
+     * @param {Object} config - { title, errorMessage, diagnosticData }
+     */
+    showDiagnosticModal({ title, errorMessage, diagnosticData }) {
+        if (sessionStorage.getItem("tts-error-shown") === "true") {
+            return;
+        }
+        
+        const modal = document.getElementById('diagnostic-modal');
+        const content = document.getElementById('diagnostic-content');
+        
+        if (!modal || !content) return;
+        
+        // 1. Determine User-Friendly Context
+        const isNoVoices = diagnosticData && diagnosticData.speechSynthesisAvailable && diagnosticData.voicesCount === 0;
+        
+        let userMessage = "Este dispositivo tiene problemas para generar voz sintética.";
+        let suggestion = "";
+
+        if (isNoVoices) {
+            userMessage = "Tu dispositivo permite voz, pero no tiene ninguna voz instalada.";
+            suggestion = `
+                <div class="diagnostic-suggestion">
+                    <strong>💡 Solución sugerida:</strong>
+                    <p>Instala <a href="#" onclick="return false;" style="color: var(--color-accent); text-decoration: underline;">Servicios de Google de síntesis de voz</a> desde Google Play Store y reinicia la aplicación.</p>
+                </div>
+            `;
+        } else {
+             userMessage = "La función de lectura de números no funcionará en este dispositivo.";
+        }
+
+        // 2. Build HTML Structure
+        let html = `
+            <div class="diagnostic-summary">
+                <p class="user-message">${userMessage}</p>
+                ${suggestion}
+            </div>
+
+            <div class="diagnostic-actions" style="margin: 1rem 0;">
+                <button type="button" id="btn-toggle-details" class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+                    Mostrar detalles técnicos ▾
+                </button>
+            </div>
+
+            <div id="diagnostic-details" class="diagnostic-details hidden" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 4px; border: 1px solid var(--color-border);">
+                <div class="diagnostic-header">
+                    <h4>Diagnóstico Técnico</h4>
+                    <p class="error-message" style="font-size: 0.8em; color: var(--color-danger);">${errorMessage}</p>
+                </div>
+                <div class="diagnostic-list">
+        `;
+        
+        if (diagnosticData) {
+            for (const [key, value] of Object.entries(diagnosticData)) {
+                html += `
+                    <div class="diagnostic-row">
+                        <span class="diagnostic-label">${key}:</span>
+                        <span class="diagnostic-value">${value}</span>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `
+                </div>
+                <div style="margin-top: 10px; text-align: right;">
+                     <small style="color: var(--color-text-muted);">Puedes copiar esto para solicitar soporte</small>
+                </div>
+            </div>
+        `;
+        
+        content.innerHTML = html;
+        
+        // 3. Bind Toggle Logic
+        const toggleBtn = content.querySelector('#btn-toggle-details');
+        const detailsDiv = content.querySelector('#diagnostic-details');
+        
+        if (toggleBtn && detailsDiv) {
+            toggleBtn.addEventListener('click', () => {
+                const isHidden = detailsDiv.classList.contains('hidden');
+                if (isHidden) {
+                    detailsDiv.classList.remove('hidden');
+                    toggleBtn.innerHTML = 'Ocultar detalles técnicos ▴';
+                } else {
+                    detailsDiv.classList.add('hidden');
+                    toggleBtn.innerHTML = 'Mostrar detalles técnicos ▾';
+                }
+            });
+        }
+
+        // Show modal
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        
+        sessionStorage.setItem("tts-error-shown", "true");
     }
 }
